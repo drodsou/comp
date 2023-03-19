@@ -10,12 +10,13 @@ const comps = compReplace([
 ]);
 
 
-document.querySelector('.reset-counters')
-  .addEventListener('click',()=>{
-    // [comps.counter1, comps.counter2, comps.counterbox1.state.counter3]
-    [comps.counter1, comps.counter2, comps.counterbox1]
-      .forEach(c=>c.update({count:-5}));
-  })
+document.querySelector('.reset-counters').addEventListener('click',()=>{
+  [comps.counter1, comps.counter2, comps.counterbox1]
+    .forEach(c=>c.update({count:-5}));
+})
 
-
+document.querySelector('.reset-counters-each').addEventListener('click',()=>{
+  [comps.counter1, comps.counter2, ...comps.counterbox1.state.counters]
+    .forEach((c,i)=>c.update({count:-i}));
+})
 
