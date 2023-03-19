@@ -10,17 +10,19 @@ linkCss(import.meta.url);
 
 export default comp({
   state : {
-    counter3 : Counter('counter3',{count:3})
+    // counter3 : Counter('counter3',{count:3}),
+    counters : [1,2,3].map(i=>Counter('counters'+i,{count:i}))
   },
   
   render ({state}) { return /*html*/`
     <div class="counter-box">
-      ${state.counter3.render()}
+      ${state.counters.map(c=>c.render()).join('')}
     </div>
   `}, 
 
   update ({state, $}) {
-    state.counter3.update(state);
+    let countState = state.count ? {count: state.count} : {}
+    state.counters.forEach(c=>c.update( countState ))
   }
 
 });
