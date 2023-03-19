@@ -35,19 +35,18 @@ export function comp ({render, update, state={}}){
  * example: const comps = compRender([Counter('counter1'), ... ])
  * returns object of successfull substituted components.
 */
-export function compReplace(compArr) {
+export function compMount(compArr) {
   const compObj = {}
-  const compEls = [...document.querySelectorAll('comp')]
-  compArr.filter(e=>e).forEach(c=>{
-    let compEl = compEls.filter(cEl=>cEl.innerText === c.id)[0];
+  compArr.filter(e=>e).forEach(comp=>{
+    let compEl = document.getElementById(comp.id);
     if (!compEl) {
-      console.error('Not found <comp>'+c.id+'</comp> in the html');
+      console.error('Not found <comp id="'+comp.id+'"></comp> in the html');
     } else {
-      compEl.outerHTML = c.render();
-      c.update(); // first auto update
-      compObj[c.id] = c;
+      compEl.outerHTML = comp.render();
+      comp.update(); // first auto update
+      compObj[comp.id] = comp;
     }
-  });
+  })
   return compObj;
 }
 

@@ -1,10 +1,10 @@
-import {compReplace, $} from './comp/comp.js';
+import {compMount, $} from './comp/comp.js';
 
 import Counter from './comp/Counter.js';
 import CounterBox from './comp/CounterBox.js';
 
 // -- replace <comp> in DOM, and returns {counter1, counter2...}
-const comps = compReplace([
+const comps = compMount([
   Counter("counter1", {count: 5}),
   Counter("counter2"),
   CounterBox("counterbox1")
