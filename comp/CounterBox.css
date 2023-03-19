@@ -1,0 +1,6 @@
+/* suggestion: since Chrome 112 on, css nesting is available */
+
+.counter-box {
+  border: 1px solid grey;
+  padding: 10px;
+}
