@@ -20,20 +20,21 @@ export default comp({
     `;
   }, 
 
-  update ({state,$}) {
+  update ({state,el}) {
     // -- update DOM from state
     const upd = ()=> {
-      $('span').innerText = state.count;
+      el('span').innerText = state.count;
     }
     upd();
 
     // -- first update
     if (!state._initialized) {
-      $('.inc').addEventListener('click', (e)=>{
+      // el('.inc').addEventListener('click', (e)=>{
+      el('.inc').addEventListener('click', (e)=>{
         state.count++; 
         upd();
       });
-      $('.reset').addEventListener('click', (e)=>{
+      el('.reset').addEventListener('click', (e)=>{
         state.count = 0; 
         upd();
       });

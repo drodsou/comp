@@ -20,7 +20,7 @@ export default comp({
     </div>
   `}, 
 
-  update ({state, $}) {
+  update ({state, el}) {
     let countState = state.count ? {count: state.count} : {}
     state.counters.forEach(c=>c.update( countState ))
   }

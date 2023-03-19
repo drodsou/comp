@@ -1,4 +1,4 @@
-import {compReplace} from './comp/comp.js';
+import {compReplace, $} from './comp/comp.js';
 
 import Counter from './comp/Counter.js';
 import CounterBox from './comp/CounterBox.js';
@@ -15,7 +15,8 @@ document.querySelector('.reset-counters').addEventListener('click',()=>{
     .forEach(c=>c.update({count:-5}));
 })
 
-document.querySelector('.reset-counters-each').addEventListener('click',()=>{
+// -- optionally using comp's $
+$('.reset-counters-each').addEventListener('click',()=>{
   [comps.counter1, comps.counter2, ...comps.counterbox1.state.counters]
     .forEach((c,i)=>c.update({count:-i}));
 })
