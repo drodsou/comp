@@ -1,68 +1,87 @@
 /**
  * Main funcion for component definition
 */
-export function comp ({render, update, state={}}){
-    
-  function create(compId, compState={}) {
+export function comp ({render, update, state}){
+  render = render || (()=>`<div></div>`);
+  update = update || (()=>{});
+  const defaultState = state || {}
+
+  function create(compId, createState={}) {
 
     // -- $ component querySelector, $() = component's dom element
-    // const el = (qs) => $(qs, document.getElementById(compId));
     const el = (qs) => $(qs, document.getElementById(compId));
-    const _state = {...state, ...compState}
+    const _state = {...defaultState, ...createState}
 
-    // -- component's .render() + extras
-    const _render = () => {
+    // -- component's wrapped .render() -adds id to first html element
+    const _render = (renderState={}) => {
+      Object.assign(_state, renderState);
       return render({state:_state}).trim()
         .replace(/(^<[^\s^>]+)/,'$1 id="' + compId + '"');
     };
 
-    // -- component's .update() + extras
+    // -- component's wrapped .update()
     const _update = (updateState={}) => {
       Object.assign(_state, updateState);
       update({state:_state, el}); 
-      _state._initialized = true;
+      _state._updated = true;
     }
 
-    return {el, render: _render, update: _update, state: _state, id: compId}
+    return {el, render: _render, update: _update, state: _state, id: compId, mount}
   }
 
   return create;
 }
 
 
+// ------------- HELPERS
+
 /**
- * Helper comp funcion: finds <comp>compIdX</comp> in the html and replaces by .render() of passed components
+ * Helper used by 'comp', and can be used independently
+ * convenient mix of querySelector and querySelectorAll
+*/
+export function $(qs, base=document) {
+  if (!qs) return base;
+  let els = [...base.querySelectorAll(qs)]
+  return els.length > 1 ? els : els[0]
+}
+
+/**
+ * Helper used by 'comp' (not essential): 
+ * finds <comp id="compId"></comp> in the html and replaces by .render() of the component
+*/
+function mount() {
+  try {
+    document.getElementById(this.id).outerHTML = this.render();
+    this.update();
+    return this;
+  } catch (e) {
+    console.error('Not found id="'+this.id+'" in the html');
+    return false;
+  }
+}
+
+
+/**
+ * Helper, independent of 'comp': Multiple mounts, returns object of successfull substituted components.
  * example: const comps = compRender([Counter('counter1'), ... ])
- * returns object of successfull substituted components.
+ * 
 */
 export function compMount(compArr) {
   const compObj = {}
   compArr.filter(e=>e).forEach(comp=>{
-    let compEl = document.getElementById(comp.id);
-    if (!compEl) {
-      console.error('Not found <comp id="'+comp.id+'"></comp> in the html');
-    } else {
-      compEl.outerHTML = comp.render();
-      comp.update(); // first auto update
-      compObj[comp.id] = comp;
-    }
+    if (comp.mount()) compObj[comp.id] = comp; 
   })
   return compObj;
 }
 
-// -- HELPERS: 
+
+
+// --helper, independent of 'comp'
 export function linkCss(jsUrl) {
   const linkEl = document.createElement("link");
   linkEl.setAttribute("rel", "stylesheet");
   linkEl.setAttribute("href", jsUrl.replace('.js','.css'));
   document.head.append(linkEl);
-}
-
-export function $(qs, base=document) {
-  if (!qs) return base;
-  let els = [...base.querySelectorAll(qs)]
-  return els.length > 1 ? els : els[0]
-
 }
 
 

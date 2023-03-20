@@ -10,7 +10,6 @@ linkCss(import.meta.url);
 
 export default comp({
   state : {
-    // counter3 : Counter('counter3',{count:3}),
     counters : [1,2,3].map(i=>Counter('counters'+i,{count:i}))
   },
   

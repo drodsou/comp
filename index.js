@@ -2,6 +2,7 @@ import {compMount, $} from './comp/comp.js';
 
 import Counter from './comp/Counter.js';
 import CounterBox from './comp/CounterBox.js';
+import Watch from './comp/Watch.js';
 
 // -- replace <comp> in DOM, and returns {counter1, counter2...}
 const comps = compMount([
@@ -9,6 +10,10 @@ const comps = compMount([
   Counter("counter2"),
   CounterBox("counterbox1")
 ]);
+
+// -- alternative way of mounting (mount() chain-reuturns comp for ease of use;
+const watch = Watch("watch").mount();
+
 
 // -- resetting from outside
 // -- using parent counterbox

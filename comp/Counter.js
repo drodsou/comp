@@ -28,7 +28,7 @@ export default comp({
     upd();
 
     // -- first update
-    if (!state._initialized) {
+    if (!state._updated) {
       // el('.inc').addEventListener('click', (e)=>{
       el('.inc').addEventListener('click', (e)=>{
         state.count++; 
