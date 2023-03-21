@@ -12,22 +12,27 @@ export function comp ({render, update, state}){
     const el = (qs) => $(qs, document.getElementById(compId));
     const _state = {...defaultState, ...createState}
 
+    const compInstance = {
+      el, render: _render, update: _update, state: _state, 
+      id: compId, mount, children: undefined
+    }
+
     // -- component's wrapped .render() -adds id to first html element
-    const _render = (renderState={}) => {
+    function _render (renderState={}) {
       Object.assign(_state, renderState);
-      return render({state:_state}).trim()
+      return render({state:_state, children: compInstance.children}).trim()
         .replace(/(^<[^\s^>]+)/,'$1 id="' + compId + '"');
     };
 
     // -- component's wrapped .update()
-    const _update = (updateState={}) => {
+    function _update (updateState={}) {
       Object.assign(_state, updateState);
       update({state:_state, el}); 
       _state._updated = true;
     }
 
-    return {el, render: _render, update: _update, state: _state, id: compId, mount}
-  }
+    return compInstance;
+  } // create
 
   return create;
 }
@@ -51,6 +56,7 @@ export function $(qs, base=document) {
 */
 function mount() {
   try {
+    this.children = document.getElementById(this.id).innerHTML;
     document.getElementById(this.id).outerHTML = this.render();
     this.update();
     return this;
