@@ -9,6 +9,7 @@ import './ce/ce-count.js';
 import './ce/ce-countbox.js';
 import './ce/ce-icon.js';
 import './ce/ce-text.js';
+import './ce/ce-md.js';
 
 // -- replace <comp> in DOM, and returns {counter1, counter2...}
 const comps = compMount([
