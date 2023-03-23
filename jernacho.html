@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <svg viewbox="0 0 200 200">
+    <circle class="circle" cx="100" cy="100" r="85" stroke-width="30"; fill-opacity="0" />
+  </svg>
+
+  <style>
+
+  svg {
+    width: 200px;
+    height: 200px;
+    rotate: -90deg;
+  }
+  .circle {
+    stroke-dasharray: 0;
+    stroke-dashoffset: 0;
+    transition-duration: 1s;
+    transition-property: stroke-dashoffset;
+    transition-timing-function: linear;
+    stroke: blue;
+  }
+ 
+</style>
+
+<script>
+  let c = document.querySelector('.circle');
+  let l = c.getTotalLength();
+  c.style.setProperty('stroke-dasharray', l);
+  c.style.setProperty('stroke-dashoffset', -l*.6);
+  
+  setTimeout(()=>{
+    c.style.setProperty('transition-duration', '2s');
+    c.style.setProperty('stroke-dashoffset', -l*.8);
+  },2000);
+</script>
+
+</body>
+</html>

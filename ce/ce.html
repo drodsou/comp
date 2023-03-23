@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script type="module">
+    import './ce-icon.js';
+    import './ce-circle.js';
+  </script>
+
+  <h1>ce</h1>
+  <ce-icon>green</ce-icon>
+  <div style="border: 1px solid black; ">
+    <ce-circle id="cir1" style="height:150px; width: 150px;"></ce-circle>
+    <ce-circle id="cir2" style="height:100px; width: 100px;"></ce-circle>
+  </div>
+  
+  <script>
+    setTimeout(()=>{
+      document.getElementById('cir1').props = {pc:.6, s:2}
+      document.getElementById('cir2').props = {pc:0, s:1}
+    },100);
+
+  </script>
+
+  <style>
+    #cir1 .circle { stroke: red;  }
+  </style>
+</body>
+</html>
