@@ -5,7 +5,9 @@ customElements.define(tag, class extends HTMLElement {
 
   constructor() {
     super();
-    this.mem = {pc: 1, s: 0}
+    this.mem = {
+      props: {to: 0, s: 0}
+    }
   }
 
   connectedCallback() {
@@ -19,8 +21,8 @@ customElements.define(tag, class extends HTMLElement {
       <style>
         ${tag} {
           display: inline-block;
-          width:50px;
-          height:50px;
+          width:150px;
+          height:150px;
         }
         ${tag} svg {
           rotate: -90deg;
@@ -31,7 +33,7 @@ customElements.define(tag, class extends HTMLElement {
           transition-duration: 0s;
           transition-property: stroke-dashoffset;
           transition-timing-function: linear;
-          stroke: red;
+          stroke: #017BC4;
         }
       </style>
     `;
@@ -48,20 +50,28 @@ customElements.define(tag, class extends HTMLElement {
   }
 
   update() {
-    const {circle, circleLength, pc, s} = this.mem;
-    circle.style.setProperty('transition-duration', s +'s');
-    circle.style.setProperty('stroke-dashoffset', -circleLength * (1-pc));
+    const {circle, circleLength, props} = this.mem;
+    circle.style.setProperty('transition-duration', props.s +'s');
+    circle.style.setProperty('stroke-dashoffset', -circleLength * (1-props.to));
   }
 
   set props(p) {
-    this.mem.pc = p.pc || 0;
-    this.mem.s = p.s || 0;
-    if (this.ready) this.update();
+    // -- si hay .from hay que hacer 2 updates seguidos, 
+    // --  uno para colocar en inicio inmediatamente
+    // -- y el 2o progresivamente, pero tiene que ser asincrono sino la css prop ignora la primer from
+    if ('from' in p) {
+      this.mem.props = {to:p.from, s:0}
+      this.update()
+    }
+    // -- normal .to
+    setTimeout(()=>{
+      this.mem.props = {to:p.to, s:p.s || 0}
+      if (this.ready) this.update();
+    },1);
   }
 
   get props() {
-    const {pc, s} = this.mem || {};
-    return {pc,s};
+    return {...this.mem.props};
   }
 
 
