@@ -1,3 +1,12 @@
+# new
+
+Forget all use defineCE2, compatible with:
+
+- No build index.html
+- Svelte props (even with innerHTML)
+- SSR+hydration (.render in server + .mountAll in client)
+
+
 # comp 
 
 Minimal no-build javascript component system.

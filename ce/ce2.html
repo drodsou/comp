@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script type="module">
+    
+  </script>
+
+  <h1>ce</h1>
+  <ce2-count id="c1">c1 </ce2-count> 
+  <hr>
+  <ce2-count><b>hola</b> </ce2-count>
+
+  <script type="module">
+    // setTimeout(()=>{
+    //   document.getElementById('cir1').props = {from:1, to:.6, s:2}
+    //   document.getElementById('cir2').props = {from: 1, to:0, s:1}
+    // },100);
+
+
+    import ce2CountTag from './ce2-count.js';
+    // -- Full Client Side Renderign (better before body)
+    // ce2CountTag.mountAll();
+
+    // -- SSR compatible (after body)
+    // // -- this would alredy come from server
+    let ssrProps = {count:3} // set on server and again on client
+    for (let e of document.querySelectorAll('ce2-count')) {
+      // let r = ce2CountTag.render({props:ssrProps,innerHTML:'ssr'})
+      // console.log(r)
+      // // console.log(e);
+      e.innerHTML = ce2CountTag.render({props:ssrProps,innerHTML:'ssr'});
+
+
+      // e=>e.innerHTML = ce2CountTag.render({props:ssrProps,innerHTML:'ssr'})
+    };
+    
+    // // -- this to check mountAll does not overwrites
+    for (let e of document.querySelectorAll('ce2-count .inc')) {
+      e.addEventListener('click',()=>console.log('click'));
+    }
+    // // -- client hydrate
+    ce2CountTag.mountAll(ssrProps); // passing props = already rendered, just "hydrate", enven ssrProps = {}
+
+    
+  </script>
+
+ 
+
+  <style>
+    body { background-color: black; color:white; }
+  </style>
+
+</body>
+</html>
