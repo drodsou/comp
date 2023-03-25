@@ -9,11 +9,12 @@
   <script type="module">
     
   </script>
+  
 
   <h1>ce</h1>
   <ce2-count id="c1">c1 </ce2-count> 
   <hr>
-  <ce2-count><b>hola</b> </ce2-count>
+  <ce2-count id="c2"><b>hola</b> </ce2-count>
 
   <script type="module">
     // setTimeout(()=>{
@@ -23,28 +24,26 @@
 
 
     import ce2CountTag from './ce2-count.js';
-    // -- Full Client Side Renderign (better before body)
-    // ce2CountTag.mountAll();
+
+
+    // // -- Full Client Side Renderign (better before body)
+    // ;[
+    //   ce2CountTag
+    // ].forEach(tag=>tag.define());
+
 
     // -- SSR compatible (after body)
-    // // -- this would alredy come from server
-    let ssrProps = {count:3} // set on server and again on client
-    for (let e of document.querySelectorAll('ce2-count')) {
-      // let r = ce2CountTag.render({props:ssrProps,innerHTML:'ssr'})
-      // console.log(r)
-      // // console.log(e);
-      e.innerHTML = ce2CountTag.render({props:ssrProps,innerHTML:'ssr'});
-
-
-      // e=>e.innerHTML = ce2CountTag.render({props:ssrProps,innerHTML:'ssr'})
-    };
+    // -- server: this would alredy come from server
+    document.getElementById('c1').innerHTML = ce2CountTag.render({props:{count:11},innerHTML:'ssr1'});
+    document.getElementById('c2').innerHTML = ce2CountTag.render({props:{count:22},innerHTML:'ssr2'});
     
-    // // -- this to check mountAll does not overwrites
+    
+    // -- client: this to check 'define' does not overwrites
     for (let e of document.querySelectorAll('ce2-count .inc')) {
       e.addEventListener('click',()=>console.log('click'));
     }
-    // // -- client hydrate
-    ce2CountTag.mountAll(ssrProps); // passing props = already rendered, just "hydrate", enven ssrProps = {}
+    // -- client hydrate
+    ce2CountTag.define(true); // passing props = already rendered, just "hydrate", enven ssrProps = {}
 
     
   </script>

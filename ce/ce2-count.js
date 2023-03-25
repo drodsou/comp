@@ -5,12 +5,21 @@ export default defineCE(import.meta.url, {
     count: 1
   },
 
-  render({innerHTML, props}) {
+  html({innerHTML, props}) {
     return /*html*/`
       <button class="inc">
         Inc ${innerHTML}: <span>${props.count}</span>
       </button>
       <button class="reset">Reset</button>
+    `;
+  },
+
+  style(tag) {
+    return /*css*/`
+      ${tag} {
+        display:inline-block;
+        border: 1px solid red;
+      }
     `;
   },
 
