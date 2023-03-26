@@ -13,22 +13,15 @@ export default defineCE(import.meta.url, {
       <button class="reset">Reset</button>
     `;
   },
-
-  style(tag) {
-    return /*css*/`
-      ${tag} {
-        display:inline-block;
-        border: 1px solid red;
-      }
-    `;
-  },
+  style,
 
   update({el, props}) {
     el.querySelector('span').innerHTML = props.count
-    // if (props.onChange) props.onChange(props.count);
+    if (props.onChange) props.onChange(props.count);
   },
 
   onMount({el}) {  
+    console.log(el)
     el.querySelector('.inc').addEventListener('click',()=>el.do.inc(5));
     el.querySelector('.reset').addEventListener('click',()=>el.do.reset());
   },
@@ -46,3 +39,14 @@ export default defineCE(import.meta.url, {
   }
 
 });
+
+// -- style
+
+function style(tag) {
+  return /*css*/`
+    ${tag} {
+      display:inline-block;
+      padding: 10px;
+    }
+  `;
+}

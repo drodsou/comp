@@ -1,10 +1,27 @@
 # new
 
-Forget all use defineCE2, compatible with:
+Forget all use defineCE2
+
+
+# defineCE2 features
+
+Compatible with:
 
 - No build index.html
 - Svelte props (even with innerHTML)
-- SSR+hydration (.render in server + .mountAll in client)
+- SSR+hydration (.render in server + .define in client)
+  - automatic server to client props passed
+
+Features
+- style only inyected in first instance of the tag, if several instances of a tag are created.
+- 
+
+# if even this is to much and you are just in a no build .html
+
+```js
+
+```
+
 
 
 # comp 

@@ -1,9 +1,11 @@
 const SSR_PROPS_INI = '<ce_ssr_props style="display:none;">';
 const SSR_PROPS_END = '</ce_ssr_props>';
 
+const toBase64 = btoa ? btoa : (txt)=>Buffer.from(txt).toString('base64'); 
+const fromBase64 = atob ? atob : (b64)=>Buffer.from(b64, 'base64').toString('utf-8')
 
 /**
- * 
+ * once each tag
 */
 export function defineCE(importMetaUrl, tagDef) {
   tagDef.elCount = 0;
@@ -19,24 +21,52 @@ export function defineCE(importMetaUrl, tagDef) {
   // tagDef.onMount
   // tagDef.do
 
-  return tagDef;
+  defineCE.defined.push(tagDef);
+
+  const tagRender = function (...args) { return tagDef.render(...args);  }
+  Object.assign(tagRender, tagDef);
+  return tagRender;
+  // return tagDef;
 };
+
+defineCE.defined = [];
+defineCE.defineAll = function (justHydrate=false) {
+  this.defined.forEach(def=>def.define(justHydrate));
+};
+
 
 
 /**
  * Callable from .define automatically on client, or directly on server for SSR
+ * Once each instance
  */
-function render({props, innerHTML, ssr=true}) {
+function render(elOrAttr='', props={}, innerHTML='') {
   const tagDef = this;
   tagDef.elCount++;
-  console.log(tagDef.elCount)
+
+  let el
+  let attr
+  if (typeof elOrAttr === 'string') attr = elOrAttr
+  else el = elOrAttr;
+
+  if (Array.isArray(innerHTML)) innerHTML = innerHTML.join('\n');
 
   // -- html()
   let html = tagDef.html({props, innerHTML});
-  // html = tagDef.elCount + '|' + html;
-  if (ssr) {
-    html = SSR_PROPS_INI + JSON.stringify(props) + SSR_PROPS_END  + html
+
+  if (!el) {
+
+    // -- ssr rendering, add stringified props for the client
+    // ${SSR_PROPS_INI}${JSON.stringify(props)}${SSR_PROPS_END}
+    html = `
+      <${tagDef.tagName} ${attr} data-props="${toBase64(JSON.stringify(props))}">
+        ${html}
+      </${tagDef.tagName}>
+    `;
   }
+
+  
+  if (el) console.log('client rendering', tagDef.tagName, ':', tagDef.elCount, '-',  el.id);
 
   // -- style() just in first instance, applies to all
   let style = '';
@@ -57,7 +87,6 @@ function render({props, innerHTML, ssr=true}) {
 */
 function define(justHydrate=false) {
   const tagDef = this;
-
 
   customElements.define(tagDef.tagName, class extends HTMLElement {
 
@@ -107,15 +136,21 @@ function define(justHydrate=false) {
         // console.log('cc:', elDom.outerHTML );
         
         // -- no render if it was already SSR
-        if (justHydrate) {
-          // -- ger ssr props
-          let m = elDom.innerHTML.match(new RegExp(SSR_PROPS_INI + '(.*?)' + SSR_PROPS_END))
-          if (m) Object.assign(elPriv.props, JSON.parse(m[1]));
+        const dataProps = elDom.dataset.props;
+        if (dataProps) {
+          // -- get stringified ssr props
+          if (dataProps === 'client-rendered')  { console.log('omiting client rerender'); }
+          else Object.assign(elPriv.props, JSON.parse(fromBase64(elDom.dataset.props)));
+
         } else {
-          // -- render
-          elDom.innerHTML = tagDef.render({props:elPriv.props, innerHTML:elDom.innerHTML, ssr:false});
+          // -- client render
+          elDom.innerHTML = tagDef.render(elDom, elPriv.props, elDom.innerHTML);
+          elDom.dataset.props = 'client-rendered';
+          // elPriv.rendered = true;
         }
+        // -- render debut
         if (tagDef.onMount) tagDef.onMount({el:elDom});
+
         elPriv.update();
         elPriv.ready = true;
       })
@@ -126,7 +161,7 @@ function define(justHydrate=false) {
   })
 };
 
-// defineCE.defined = {};
+
 
 // window.defineCE = defineCE
 

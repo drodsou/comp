@@ -6,15 +6,18 @@
   <title>Document</title>
 </head>
 <body>
-  <script type="module">
-    
-  </script>
-  
+   
 
   <h1>ce</h1>
   <ce2-count id="c1">c1 </ce2-count> 
   <hr>
   <ce2-count id="c2"><b>hola</b> </ce2-count>
+
+  <hr>
+  <ce2-box>
+    <ce2-count id="c3">c3</ce2-count>
+    <ce2-count id="c4">c4</ce2-count>
+  </ce2-box>
 
   <script type="module">
     // setTimeout(()=>{
@@ -22,33 +25,32 @@
     //   document.getElementById('cir2').props = {from: 1, to:0, s:1}
     // },100);
 
+    // import ce2CountTag from './ce2-count.js';
+    import './ce2-count.js';
+    import './ce2-box.js';
+    import {defineCE} from './defineCE2.js';
+    
+    // -- Full Client Side Renderign (better before body)
+    defineCE.defineAll();
+    // ;[ce2CountTag].forEach(tag=>tag.define());
 
-    import ce2CountTag from './ce2-count.js';
 
-
-    // // -- Full Client Side Renderign (better before body)
-    // ;[
-    //   ce2CountTag
-    // ].forEach(tag=>tag.define());
-
-
-    // -- SSR compatible (after body)
-    // -- server: this would alredy come from server
-    document.getElementById('c1').innerHTML = ce2CountTag.render({props:{count:11},innerHTML:'ssr1'});
-    document.getElementById('c2').innerHTML = ce2CountTag.render({props:{count:22},innerHTML:'ssr2'});
+    // // -- SSR compatible (after body)
+    // // -- server: this would alredy come from server
+    // document.getElementById('c1').innerHTML = ce2CountTag.render({props:{count:11},innerHTML:'ssr1'});
+    // document.getElementById('c2').innerHTML = ce2CountTag.render({props:{count:22},innerHTML:'ssr2'});
     
     
-    // -- client: this to check 'define' does not overwrites
-    for (let e of document.querySelectorAll('ce2-count .inc')) {
-      e.addEventListener('click',()=>console.log('click'));
-    }
-    // -- client hydrate
-    ce2CountTag.define(true); // passing props = already rendered, just "hydrate", enven ssrProps = {}
+    // // -- client: this to check 'define' does not overwrites
+    // for (let e of document.querySelectorAll('ce2-count .inc')) {
+    //   e.addEventListener('click',()=>console.log('click'));
+    // }
+    // // -- client hydrate
+    // defineCE.defineAll(true);
+    // // ce2CountTag.define(true); // passing props = already rendered, just "hydrate", enven ssrProps = {}
 
     
   </script>
-
- 
 
   <style>
     body { background-color: black; color:white; }
