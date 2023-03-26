@@ -15,6 +15,7 @@ Compatible with:
 - SSR+hydration (.render in server + .define in client)
   - automatic server to client props passed via data-props base64-json
 - React via wc-react (https://github.com/nmetulev/wc-react) see example below
+- Vue, tested :props and @change, see info bellow
 
 Features
 - style only inyected in first instance of the tag, if several instances of a tag are created.
@@ -35,6 +36,12 @@ see example: ce-vanille-counter.js
 - E.g: with plain text html, in Svelte there is no space between "mounts the element" and y "looks if it has .props property". onMount is too late and main.js is too soon, it does not exist in the DOM yet
 
 - mount comes by default, no need of manual mount
+
+# use in Vue
+
+```js
+ <ce-vanilla-count :props="{count}" @change="handleChange"></ce-vanilla-count>
+```
 
 # use in React
 
