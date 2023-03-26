@@ -4,6 +4,7 @@ export default defineCE(import.meta.url, {
   props : {
     count: 1
   },
+  attr : ['myattr'],
 
   html({innerHTML, props}) {
     return /*html*/`
@@ -19,6 +20,7 @@ export default defineCE(import.meta.url, {
     el.querySelector('span').innerHTML = props.count
     if (props.onChange) props.onChange(props.count);
   },
+  emitChange : true,
 
   onMount({el}) {  
     el.querySelector('.inc').addEventListener('click',()=>el.do.inc(5));
@@ -46,6 +48,7 @@ function style(tag) {
     ${tag} {
       display:inline-block;
       padding: 10px;
+      border: 2px dashed grey;
     }
   `;
 }

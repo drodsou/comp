@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    app-element::part(container) {
+      background-color: cyan;
+    }
+  </style>
+</head>
+<body>
+
+  <script type="module">
+    import './ce2-count.js';
+    import defineCE from './defineCE2.js';
+    defineCE.defineAll();
+
+
+    customElements.define("app-element", class extends HTMLElement {
+      constructor() {
+        super();
+        // this.attachShadow({ mode: "open" });
+      }
+      connectedCallback() {
+        // this.shadowRoot.innerHTML = /*html*/`
+        this.innerHTML = `
+          <template shadowrootmode="open">
+            Tpl: <slot></slot>
+            <style>
+              div {border:2px solid red;}
+            </style>
+          </template>
+
+        `;
+      }
+    });
+
+  </script>
+
+
+
+  hola
+  <ce2-count></ce2-count>
+
+  <hr><div>un div normal</div>
+
+  <app-element></app-element>
+  <app-element><span>Manz</span></app-element>
+
+  <hr>
+  declarative shadow <button>normal button</button>
+  <hr>
+
+  <menu-toggle>
+    <template shadowrootmode="open">
+      <button>
+        <slot></slot>
+      </button>
+      <style>button {color:red} </style>
+    </template>
+    Open Menu
+  </menu-toggle>
+
+
+  <floripon>dio negri</floripon>
+  
+
+</body>
+</html>

@@ -37,6 +37,8 @@ customElements.define(tag, class extends HTMLElement {
   update() {
     const props = this.elPriv.props;
     this.querySelector('button').innerText = props.count;
+    this.dispatchEvent(new CustomEvent('change',{detail: props}));  // works with onchange and Svelte on:change
+    // if (this.onchange) this.onchange({detail:props})  // this does not work with on:change in Svelte
   }
 
   // -- common

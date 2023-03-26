@@ -9,7 +9,7 @@
    
 
   <h1>ce</h1>
-  <ce2-count id="c1">c1 </ce2-count> 
+  <ce2-count id="c1" myattr="attr value" onchange="console.log(event.detail)">c1 </ce2-count> 
   <hr>
   <ce2-count id="c2"><b>hola</b> </ce2-count>
 
@@ -20,7 +20,7 @@
   </ce2-box>
 
   <hr>
-  <ce-vanilla-count></ce-vanilla-count>
+  <ce-vanilla-count onflus="console.log('flus')" onchange="console.log('change', event.detail)"></ce-vanilla-count>
 
   <script type="module">
     // setTimeout(()=>{
@@ -35,7 +35,7 @@
     import './ce-vanilla-count.js';
 
     
-    // -- Full Client Side Renderign (better before body)
+    // -- Full Client Side Rendering (better before body)
     defineCE.defineAll();
     // ;[ce2CountTag].forEach(tag=>tag.define());
 

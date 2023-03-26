@@ -14,13 +14,15 @@ Compatible with:
 - Svelte, with auto props (even with children/innerHTML)
 - SSR+hydration (.render in server + .define in client)
   - automatic server to client props passed via data-props base64-json
+- React via wc-react (https://github.com/nmetulev/wc-react) see example below
 
 Features
 - style only inyected in first instance of the tag, if several instances of a tag are created.
+  - or style: true create links of .css with same name of component .js
 - data-props="client-rendered" prevents client re-render in nested CEs
   - (so, never use data-props on client-side only, its an automatic attriute only)
 
-# if this is too complicated
+# if this lookss too complicated for the job:
 
 If you just need a simple client side webcomponent (without nesting), that even works with Svelte 'props'
 
@@ -28,7 +30,80 @@ If you just need a simple client side webcomponent (without nesting), that even 
 see example: ce-vanille-counter.js
 ```
 
+# why not just plain text and skip all the web components mess?
 
+- E.g: with plain text html, in Svelte there is no space between "mounts the element" and y "looks if it has .props property". onMount is too late and main.js is too soon, it does not exist in the DOM yet
+
+- mount comes by default, no need of manual mount
+
+# use in React
+
+```js
+// --- defineAndWrapCE.js
+import {wrapWc} from 'wc-react';  // magic here
+
+import './ce-count.js';
+// ... all your ce's here
+
+import defineCE from './defineCE2.js';
+defineCE.defineAll();
+
+const ceReact = {}
+defineCE.defined.forEach(tagDef=>{
+  let camelName = tagDef.tagName.split('-').map(e=>e[0].toUpperCase() + e.slice(1)).join('');
+  ceReact[camelName] = wrapWc(tagDef.tagName);
+});
+export default ceReact;
+
+
+
+
+// -- use them
+import ce from './defineAndWrapCE.js';
+const {CeCount} = ce;
+
+function App() {
+  const [count, setCount] = useState(0)
+  const ceRef = useRef();
+  return (
+    ...
+    <CeCount ref={ceRef} props={{count}} onChange={e=>console.log(e.detail)}></CeCount>
+    ... 
+  )
+}
+```
+
+
+# improvements for the future (?):
+
+## declarative shadow root + slot (crome 111 on)
+
+```html
+  <menu-toggle>
+    <template shadowrootmode="open">
+      <button part="thebutton">
+        <slot></slot>
+      </button>
+      <style>button {color:red} </style>
+    </template>
+    Open Menu
+  </menu-toggle>
+```
+https://caniuse.com/?search=shadowRootmode
+
+
+
+## css ::part
+
+ ce-comp::part(thebutton) {color:yellow;}
+
+## nested css
+
+de-boilerplate element css when using external .css, not having to repeat the tags name n times.
+
+
+
+----------- OLD
 
 # comp 
 

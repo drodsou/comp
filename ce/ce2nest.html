@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+
+  <script type="module">
+    import './ce2-count.js';
+    import './ce2-box.js';
+    import defineCE from './defineCE2.js';
+    defineCE.defineAll();
+    import './ce-vanilla-count.js';
+  </script>
+
+
+  <h1>ce nest</h1>
+  
+  <ce2-box id="b1">
+    <ce2-count id="c1">c3</ce2-count>
+    <ce2-count id="c2">c4</ce2-count>
+  </ce2-box>
+
+  <ce-vanilla-count onclick="console.log('click')"></ce-vanilla-count>
+
+  
+
+  <style>
+    body { background-color: black; color:white; }
+  </style>
+
+</body>
+</html>

@@ -6,17 +6,20 @@ const fromBase64 = atob ? atob : (b64)=>Buffer.from(b64, 'base64').toString('utf
 */
 export default function defineCE(importMetaUrl, tagDef) {
   tagDef.elCount = 0;
+  tagDef.importMetaUrl = importMetaUrl;
   tagDef.tagName = importMetaUrl.split('/').pop().split('.').shift();
   tagDef.define = define;
 
   tagDef.html = tagDef.html || (()=>'');
   tagDef.style = tagDef.style || (()=>'');
   tagDef.render = render;
+  tagDef.attr = tagDef.attr || []
   
   // tagDef.update
   // tagDef.props
   // tagDef.onMount
   // tagDef.do
+  // tagDef.emitChange = true
 
   defineCE.defined.push(tagDef);
 
@@ -68,9 +71,16 @@ function render(elOrAttr='', props={}, innerHTML='') {
   // -- style() just in first instance, applies to all
   let style = '';
   if (tagDef.elCount === 1) {
-    style = tagDef.style(tagDef.tagName).trim();
-    if (style.length>0 && !style.startsWith('<style')) {
-      style = '<style>' + style + '</style>';
+    if (tagDef.style === true) {
+      // -- link css. if in browser
+      if (typeof window !== 'undefined') linkCss(tagDef.importMetaUrl);
+
+    } else {
+      // -- add style element
+      style = tagDef.style(tagDef.tagName).trim();
+      if (style.length>0 && !style.startsWith('<style')) {
+        style = '<style>' + style + '</style>';
+      }
     }
   }
   
@@ -98,6 +108,13 @@ function define() {
             el: elDom,
             props: elPriv.props
           }); 
+          // -- emitChange?
+          if (tagDef.emitChange) {
+            const propsStr = JSON.stringify(elPriv.props)
+            if (propsStr !== elPriv.lastPropsStr) 
+            elDom.dispatchEvent(new CustomEvent('change',{detail: {...elPriv.props}} ));  // works with onchange and Svelte on:change
+            elPriv.lastPropsStr = propsStr;
+          }
         },
         do : {},
       }
@@ -156,12 +173,27 @@ function define() {
     }
 
     // -- intentionally dont use observed attributes, to avoid props/attr sync mess
+    static get observedAttributes() { 
+      return tagDef.attr; 
+    }
+    attributeChangedCallback(name, oldValue, newValue) {
+      this.props = {[name] : newValue}
+    }
+
   })
 };
 
 
 
 // window.defineCE = defineCE
+
+// --helper, independent of 'comp'
+export function linkCss(jsUrl) {
+  const linkEl = document.createElement("link");
+  linkEl.setAttribute("rel", "stylesheet");
+  linkEl.setAttribute("href", jsUrl.replace('.js','.css'));
+  document.head.append(linkEl);
+}
 
 
 // function uid (prefix='') {
