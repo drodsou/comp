@@ -21,7 +21,6 @@ export default defineCE(import.meta.url, {
   },
 
   onMount({el}) {  
-    console.log(el)
     el.querySelector('.inc').addEventListener('click',()=>el.do.inc(5));
     el.querySelector('.reset').addEventListener('click',()=>el.do.reset());
   },

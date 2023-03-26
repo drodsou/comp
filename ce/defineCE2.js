@@ -30,8 +30,8 @@ export function defineCE(importMetaUrl, tagDef) {
 };
 
 defineCE.defined = [];
-defineCE.defineAll = function (justHydrate=false) {
-  this.defined.forEach(def=>def.define(justHydrate));
+defineCE.defineAll = function () {
+  this.defined.forEach(def=>def.define());
 };
 
 
@@ -66,7 +66,8 @@ function render(elOrAttr='', props={}, innerHTML='') {
   }
 
   
-  if (el) console.log('client rendering', tagDef.tagName, ':', tagDef.elCount, '-',  el.id);
+  // --debug
+  // if (el) console.log('client rendering', tagDef.tagName, ':', tagDef.elCount, '-',  el.id);
 
   // -- style() just in first instance, applies to all
   let style = '';
@@ -85,7 +86,7 @@ function render(elOrAttr='', props={}, innerHTML='') {
 /**
  * once for each tag
 */
-function define(justHydrate=false) {
+function define() {
   const tagDef = this;
 
   customElements.define(tagDef.tagName, class extends HTMLElement {
@@ -133,14 +134,15 @@ function define(justHydrate=false) {
       // -- so we wait for "later" to get it
       // -- equivalent to precess.nextTick
       Promise.resolve().then(()=>{
-        // console.log('cc:', elDom.outerHTML );
         
         // -- no render if it was already SSR
         const dataProps = elDom.dataset.props;
         if (dataProps) {
-          // -- get stringified ssr props
-          if (dataProps === 'client-rendered')  { console.log('omiting client rerender'); }
-          else Object.assign(elPriv.props, JSON.parse(fromBase64(elDom.dataset.props)));
+          if (dataProps !== 'client-rendered')  { 
+            // -- get stringified ssr props
+            Object.assign(elPriv.props, JSON.parse(fromBase64(elDom.dataset.props)));
+          } 
+          // else  console.log('omiting client re-render'); 
 
         } else {
           // -- client render
