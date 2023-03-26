@@ -1,4 +1,4 @@
-import {defineCE} from './defineCE2.js';
+import defineCE from './defineCE2.js';
 
 export default defineCE(import.meta.url, {
   props : {

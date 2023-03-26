@@ -19,6 +19,9 @@
     <ce2-count id="c4">c4</ce2-count>
   </ce2-box>
 
+  <hr>
+  <ce-vanilla-count></ce-vanilla-count>
+
   <script type="module">
     // setTimeout(()=>{
     //   document.getElementById('cir1').props = {from:1, to:.6, s:2}
@@ -28,7 +31,9 @@
     // import ce2CountTag from './ce2-count.js';
     import './ce2-count.js';
     import './ce2-box.js';
-    import {defineCE} from './defineCE2.js';
+    import defineCE from './defineCE2.js';
+    import './ce-vanilla-count.js';
+
     
     // -- Full Client Side Renderign (better before body)
     defineCE.defineAll();

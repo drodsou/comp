@@ -1,6 +1,6 @@
 import ceCount from './ce2-count.js';
 import ceBox from './ce2-box.js';
-import {defineCE} from './defineCE2.js';
+import defineCE from './defineCE2.js';
 
 
 

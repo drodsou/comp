@@ -1,13 +1,10 @@
-const SSR_PROPS_INI = '<ce_ssr_props style="display:none;">';
-const SSR_PROPS_END = '</ce_ssr_props>';
-
 const toBase64 = btoa ? btoa : (txt)=>Buffer.from(txt).toString('base64'); 
 const fromBase64 = atob ? atob : (b64)=>Buffer.from(b64, 'base64').toString('utf-8')
 
 /**
  * once each tag
 */
-export function defineCE(importMetaUrl, tagDef) {
+export default function defineCE(importMetaUrl, tagDef) {
   tagDef.elCount = 0;
   tagDef.tagName = importMetaUrl.split('/').pop().split('.').shift();
   tagDef.define = define;
@@ -57,7 +54,6 @@ function render(elOrAttr='', props={}, innerHTML='') {
   if (!el) {
 
     // -- ssr rendering, add stringified props for the client
-    // ${SSR_PROPS_INI}${JSON.stringify(props)}${SSR_PROPS_END}
     html = `
       <${tagDef.tagName} ${attr} data-props="${toBase64(JSON.stringify(props))}">
         ${html}

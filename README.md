@@ -2,24 +2,30 @@
 
 Forget all use defineCE2
 
+TODO
+- ce-box style disappear in svelte, why?
+
 
 # defineCE2 features
 
 Compatible with:
 
-- No build index.html
-- Svelte props (even with innerHTML)
+- No build index.html client only
+- Svelte, with auto props (even with children/innerHTML)
 - SSR+hydration (.render in server + .define in client)
-  - automatic server to client props passed
+  - automatic server to client props passed via data-props base64-json
 
 Features
 - style only inyected in first instance of the tag, if several instances of a tag are created.
-- 
+- data-props="client-rendered" prevents client re-render in nested CEs
+  - (so, never use data-props on client-side only, its an automatic attriute only)
 
-# if even this is to much and you are just in a no build .html
+# if this is too complicated
+
+If you just need a simple client side webcomponent (without nesting), that even works with Svelte 'props'
 
 ```js
-
+see example: ce-vanille-counter.js
 ```
 
 
