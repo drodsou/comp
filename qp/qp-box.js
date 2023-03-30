@@ -1,6 +1,6 @@
-import defineCE from '../qomp.js';
+import qomp from '../qomp.js';
 
-export default defineCE(import.meta.url, {
+export default qomp(import.meta.url, {
   props : {
     value: -1
   },
@@ -18,12 +18,12 @@ export default defineCE(import.meta.url, {
       </div>
     `;
   },
+  css,
   
   update({el, props}) {
     el.querySelector('.box-value').innerHTML = props.value
   },
   
-  style,
   onMount({el}) {
     for (let child of el.querySelector('.children').children) {
       child.props = {onChange: (value)=>el.props={value} }
@@ -34,7 +34,7 @@ export default defineCE(import.meta.url, {
 
 // -- style
 
-function style(tag) {
+function css(tag) {
   return /*css*/`
     ${tag} {
       display:inline-block;

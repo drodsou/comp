@@ -1,6 +1,6 @@
-import defineCE from '../qomp.js';
+import qomp from '../qomp.js';
 
-export default defineCE(import.meta.url, {
+export default qomp(import.meta.url, {
   props : {
     count: 1
   },

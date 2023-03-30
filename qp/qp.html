@@ -31,12 +31,13 @@
     // import ce2CountTag from './qp-count.js';
     import './qp-count.js';
     import './qp-box.js';
-    import defineCE from '../qomp.js';
+    import qomp from '../qomp.js';
     import '../ce/ce-count.js';
 
     
     // -- Full Client Side Rendering (better before body)
-    defineCE.defineAll();
+    qomp.defineAll();
+    qomp.styleAll().apply();
     // ;[ce2CountTag].forEach(tag=>tag.define());
 
 
@@ -51,7 +52,7 @@
     //   e.addEventListener('click',()=>console.log('click'));
     // }
     // // -- client hydrate
-    // defineCE.defineAll(true);
+    // qomp.defineAll(true);
     // // ce2CountTag.define(); // passing props = already rendered, just "hydrate", enven ssrProps = {}
 
     

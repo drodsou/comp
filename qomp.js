@@ -4,15 +4,16 @@ const fromBase64 = atob ? atob : (b64)=>Buffer.from(b64, 'base64').toString('utf
 /**
  * once each tag
 */
-export default function defineCE(importMetaUrl, tagDef) {
+export default function qomp(importMetaUrl, tagDef) {
   tagDef.elCount = 0;
   tagDef.importMetaUrl = importMetaUrl;
   tagDef.tagName = importMetaUrl.split('/').pop().split('.').shift();
   tagDef.define = define;
 
   tagDef.html = tagDef.html || (()=>'');
-  tagDef.style = tagDef.style || (()=>'');
+  tagDef.css = tagDef.css || (()=>'');
   tagDef.render = render;
+  tagDef.style = style;
   tagDef.attr = tagDef.attr || []
   
   // tagDef.update
@@ -21,18 +22,41 @@ export default function defineCE(importMetaUrl, tagDef) {
   // tagDef.do
   // tagDef.emitChange = true
 
-  defineCE.defined.push(tagDef);
+  qomp.tags.push(tagDef);
 
+  // -- syntax sugar for tagDef() === tagDef.render()
   const tagRender = function (...args) { return tagDef.render(...args);  }
   Object.assign(tagRender, tagDef);
   return tagRender;
   // return tagDef;
 };
 
-defineCE.defined = [];
-defineCE.defineAll = function () {
-  this.defined.forEach(def=>def.define());
+qomp.tags = [];
+qomp.defineAll = function () {
+  this.tags.forEach(tagDef=>tagDef.define());
 };
+qomp.styleAll = function () {
+  const stAll = {
+    links : [],
+    css : '',
+    apply() {
+      if (typeof window !== 'undefined') {
+        stAll.links.forEach(link=>addCssLink(link));
+        if (stAll.css.trim().length > 0) addStyleElement(stAll.css);
+      }
+    }
+  }
+
+  this.tags.forEach(tagDef=>{
+    let st = tagDef.style();
+    if (st.link.length > 0) stAll.links.push(st.link);
+    if (st.css.length > 0) { 
+      console.log(tagDef.tagName, st.css)
+      stAll.css += '\n' + st.css; }
+  })
+
+  return stAll;
+}
 
 
 
@@ -63,29 +87,33 @@ function render(elOrAttr='', props={}, innerHTML='') {
       </${tagDef.tagName}>
     `;
   }
-
   
-  // --debug
-  // if (el) console.log('client rendering', tagDef.tagName, ':', tagDef.elCount, '-',  el.id);
-
-  // -- style() just in first instance, applies to all
-  let style = '';
-  if (tagDef.elCount === 1) {
-    if (tagDef.style === true) {
-      // -- link css. if in browser
-      if (typeof window !== 'undefined') linkCss(tagDef.importMetaUrl);
-
-    } else {
-      // -- add style element
-      style = tagDef.style(tagDef.tagName).trim();
-      if (style.length>0 && !style.startsWith('<style')) {
-        style = '<style>' + style + '</style>';
-      }
-    }
-  }
-  
-  return html + style;
+  return html;
 };
+
+
+function style() {
+  const tagDef = this;
+
+  const st = {
+    link : '',
+    css : '',
+    apply() {
+      if (typeof window !== 'undefined') {
+        if (st.link.length > 0) addCssLink(st.link);
+        else if (st.css.length >0) addStyleElement(st.css);
+      }
+    } 
+  }
+
+  if (tagDef.css === true) {
+    st.link = tagDef.importMetaUrl.replace('.js','.css');
+  } else {
+    st.css = tagDef.css(tagDef.tagName).trim();
+  }
+
+  return st;
+}
 
 
 
@@ -183,9 +211,23 @@ function define() {
   })
 };
 
+function addCssLink(cssUrl) {
+  const linkEl = document.createElement("link");
+  linkEl.setAttribute("rel", "stylesheet");
+  linkEl.setAttribute("href", cssUrl);
+  document.head.append(linkEl);
+}
 
 
-// window.defineCE = defineCE
+function addStyleElement(css) {
+  const styleEl = document.createElement("style");
+  styleEl.setAttribute("type", "text/css");
+  styleEl.append(document.createTextNode(css));
+  document.head.append(styleEl);
+}
+
+
+// window.qomp = qomp
 
 // --helper, independent of 'comp'
 export function linkCss(jsUrl) {

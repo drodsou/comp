@@ -1,6 +1,6 @@
 import ceCount from './qp-count.js';
 import ceBox from './qp-box.js';
-import defineCE from '../qomp.js';
+import qomp from '../qomp.js';
 
 
 
@@ -16,7 +16,7 @@ document.querySelector('#ssr').innerHTML = html;
 //   e.addEventListener('click',()=>console.log('click'));
 // }
 // -- client hydrate
-defineCE.defineAll(true);
+qomp.defineAll(true);
 
 // let hok = ceBox.render(elOrAttr, {count:1}, [
 
