@@ -9,18 +9,18 @@
    
 
   <h1>ce</h1>
-  <ce2-count id="c1" myattr="attr value" onchange="console.log(event.detail)">c1 </ce2-count> 
+  <qp-count id="c1" myattr="attr value" onchange="console.log(event.detail)">c1 </qp-count> 
   <hr>
-  <ce2-count id="c2"><b>hola</b> </ce2-count>
+  <qp-count id="c2"><b>hola</b> </qp-count>
 
   <hr>
-  <ce2-box>
-    <ce2-count id="c3">c3</ce2-count>
-    <ce2-count id="c4">c4</ce2-count>
-  </ce2-box>
+  <qp-box>
+    <qp-count id="c3">c3</qp-count>
+    <qp-count id="c4">c4</qp-count>
+  </qp-box>
 
   <hr>
-  <ce-vanilla-count onflus="console.log('flus')" onchange="console.log('change', event.detail)"></ce-vanilla-count>
+  <ce-count onflus="console.log('flus')" onchange="console.log('change', event.detail)"></ce-count>
 
   <script type="module">
     // setTimeout(()=>{
@@ -28,11 +28,11 @@
     //   document.getElementById('cir2').props = {from: 1, to:0, s:1}
     // },100);
 
-    // import ce2CountTag from './ce2-count.js';
-    import './ce2-count.js';
-    import './ce2-box.js';
-    import defineCE from './defineCE2.js';
-    import './ce-vanilla-count.js';
+    // import ce2CountTag from './qp-count.js';
+    import './qp-count.js';
+    import './qp-box.js';
+    import defineCE from '../qomp.js';
+    import '../ce/ce-count.js';
 
     
     // -- Full Client Side Rendering (better before body)
@@ -47,7 +47,7 @@
     
     
     // // -- client: this to check 'define' does not overwrites
-    // for (let e of document.querySelectorAll('ce2-count .inc')) {
+    // for (let e of document.querySelectorAll('qp-count .inc')) {
     //   e.addEventListener('click',()=>console.log('click'));
     // }
     // // -- client hydrate

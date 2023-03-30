@@ -1,38 +1,55 @@
-import {defineCE} from './defineCE.js';
+const tag = import.meta.url.split('/').pop().split('.').shift();
+customElements.define(tag, class extends HTMLElement {
+  
+  constructor() {
+    super();
+    this.elPriv = {
+      props: {count:1}
+    }
+  }
+  connectedCallback() {
+    const props = this.elPriv.props;
+    
+    this.innerHTML = /*html*/`
+      
+      <button>3</button>
 
-defineCE('ce-count', {
-
-  state : {
-    count: 1
-  },
-
-  render() {
-    return /*html*/`
-      <button class="inc">
-        ${this.innerHTML} inc <span></span>
-      </button>
-      <button class="reset">Reset</button>
+      <style>
+        ${tag} button{
+          border-radius: 20px;
+          background-color: lightgreen;
+          cursor: pointer;
+          padding: 5px 20px;
+        }
+      </style>
     `;
-  },
 
-  update() {
-    this.querySelector('span').innerHTML = this.state.count
-    if (this.onChange) this.onChange(this.state.count);
-  },
+    this.querySelector('button').addEventListener('click',()=>{
+      props.count++;
+      this.update()
+    });
 
-  mount() {  
-    console.log('mount count')
-    this.querySelector('.inc').addEventListener('click',()=>this.doInc());
-    this.querySelector('.reset').addEventListener('click',()=>this.doReset());
-  },
-
-  doInc() {
-    this.state.count++;
+    // -- common
     this.update();
-  },
-
-  doReset() {
-    this.setState({count:0})
+    this.elPriv.ready = true;
   }
 
+  update() {
+    const props = this.elPriv.props;
+    this.querySelector('button').innerText = props.count;
+    this.dispatchEvent(new CustomEvent('change',{detail: props}));  // works with onchange and Svelte on:change
+    // if (this.onchange) this.onchange({detail:props})  // this does not work with on:change in Svelte
+  }
+
+  // -- common
+  set props(p) {
+    const props = this.elPriv.props;
+    Object.assign(props,p);
+    if (this.elPriv.ready) this.update();
+  }
+
+  get props() {
+    const props = this.elPriv.props;
+    return {...props}
+  }
 });

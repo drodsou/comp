@@ -1,4 +1,4 @@
-import defineCE from './defineCE2.js';
+import defineCE from '../qomp.js';
 
 export default defineCE(import.meta.url, {
   props : {
@@ -12,8 +12,8 @@ export default defineCE(import.meta.url, {
         <h1>ce2 box</h1>
         <div class="box-value"></div>
         <div class="children">
-          <ce2-count id="c3">c33</ce2-count>
-          <ce2-count id="c4">c44</ce2-count>
+          <qp-count id="c3">c33</qp-count>
+          <qp-count id="c4">c44</qp-count>
         </div>
       </div>
     `;

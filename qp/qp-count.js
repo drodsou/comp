@@ -1,4 +1,4 @@
-import defineCE from './defineCE2.js';
+import defineCE from '../qomp.js';
 
 export default defineCE(import.meta.url, {
   props : {
@@ -16,13 +16,18 @@ export default defineCE(import.meta.url, {
   },
   style,
 
-  update({el, props}) {
+  // upd: [
+  //   ['span','innerHTML', 'count']
+  // ],
+  
+  update({el, props, $}) {
+    // $('span').innerHTML = props.count
     el.querySelector('span').innerHTML = props.count
-    if (props.onChange) props.onChange(props.count);
   },
   emitChange : true,
 
-  onMount({el}) {  
+  onMount({el, evt}) {  
+    // evt('.inc','click','inc');
     el.querySelector('.inc').addEventListener('click',()=>el.do.inc(5));
     el.querySelector('.reset').addEventListener('click',()=>el.do.reset());
   },

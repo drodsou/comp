@@ -1,6 +1,6 @@
-import ceCount from './ce2-count.js';
-import ceBox from './ce2-box.js';
-import defineCE from './defineCE2.js';
+import ceCount from './qp-count.js';
+import ceBox from './qp-box.js';
+import defineCE from '../qomp.js';
 
 
 
@@ -12,7 +12,7 @@ let html = ceBox('id="b1"', {value:33}, [
 document.querySelector('#ssr').innerHTML = html;
 
 // -- client: this to check 'define' does not overwrites
-// for (let e of document.querySelectorAll('ce2-count .inc')) {
+// for (let e of document.querySelectorAll('qp-count .inc')) {
 //   e.addEventListener('click',()=>console.log('click'));
 // }
 // -- client hydrate
