@@ -14,7 +14,7 @@ export default qomp(import.meta.url, {
       <button class="reset">Reset</button>
     `;
   },
-  style,
+  css:true,
 
   // upd: [
   //   ['span','innerHTML', 'count']
@@ -48,7 +48,7 @@ export default qomp(import.meta.url, {
 
 // -- style
 
-function style(tag) {
+function css(tag) {
   return /*css*/`
     ${tag} {
       display:inline-block;

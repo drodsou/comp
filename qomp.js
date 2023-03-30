@@ -49,9 +49,9 @@ qomp.styleAll = function () {
 
   this.tags.forEach(tagDef=>{
     let st = tagDef.style();
+    console.log(tagDef.tagName, st)
     if (st.link.length > 0) stAll.links.push(st.link);
     if (st.css.length > 0) { 
-      console.log(tagDef.tagName, st.css)
       stAll.css += '\n' + st.css; }
   })
 
