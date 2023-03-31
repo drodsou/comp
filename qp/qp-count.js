@@ -27,9 +27,11 @@ export default qomp(import.meta.url, {
   emitChange : true,
 
   onMount({el, evt}) {  
-    // evt('.inc','click','inc');
-    el.querySelector('.inc').addEventListener('click',()=>el.do.inc(5));
-    el.querySelector('.reset').addEventListener('click',()=>el.do.reset());
+    // -- evt not only more concise, it automatically removes events onDismount
+    evt('.inc','click',()=>el.do.inc(5));
+    evt('.reset','click',()=>el.do.reset());
+    // el.querySelector('.inc').addEventListener('click',()=>el.do.inc(5));
+    // el.querySelector('.reset').addEventListener('click',()=>el.do.reset());
   },
 
   do : {

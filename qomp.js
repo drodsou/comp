@@ -18,9 +18,12 @@ export default function qomp(importMetaUrl, tagDef) {
   
   // tagDef.update
   // tagDef.props
-  // tagDef.onMount
   // tagDef.do
   // tagDef.emitChange = true
+  // tagDef.onMount
+  // tagDef.onDismount
+
+  // TODO: willUpdate, didUpdate, willMount, didMount, willUnmount, didUnmount
 
   qomp.tags.push(tagDef);
 
@@ -60,7 +63,7 @@ qomp.styleAll = function () {
  */
 function render(elOrAttr='', props={}, innerHTML='') {
   const tagDef = this;
-  tagDef.elCount++;
+  tagDef.elCount++;   // here bc its alweays called, server or client
 
   let el
   let attr
@@ -131,6 +134,7 @@ function define(withStyle=true) {
           }
         },
         do : {},
+        events : []
       }
       Object.entries(tagDef.do).forEach(([key,fn])=>{
         elPriv.do[key] = fn.bind(elPriv);
@@ -180,15 +184,27 @@ function define(withStyle=true) {
           elDom.dataset.props = 'client-rendered';
         }
         // -- render 
-        if (tagDef.onMount) tagDef.onMount({el:elDom});
+        if (tagDef.onMount) tagDef.onMount({el:elDom, evt:evt.bind({elDom, elPriv}) });
 
         elPriv.update();
         elPriv.ready = true;
       })
-
     }
 
-    // -- intentionally dont use observed attributes, to avoid props/attr sync mess
+    // -- autoremove event listener (if evt is used)
+    disconnectedCallback() {
+      const elDom = this;
+      const {elPriv} = this;
+
+      elPriv.events.forEach(event=>{
+        elDom.removeEventListener(event.ev, event.evFn);
+        console.log('removed', this.tagName, event.ev);
+      });
+      elPriv.events=[]
+      if (tagDef.onDismount) tagDef.onDismount({el:elDom});
+    }
+
+    // -- attributes => props
     static get observedAttributes() { 
       return tagDef.attr; 
     }
@@ -200,7 +216,15 @@ function define(withStyle=true) {
 };
 
 
- // -- HELPERS
+// -- EVENTS HELPER
+function evt (qs, ev, evFn) {
+  const {elDom, elPriv} = this;
+  elDom.querySelector(qs).addEventListener(ev, evFn);
+  elPriv.events.push({ev, evFn});
+}
+
+
+ // -- STYLE HELPERS
 
  function createStyle(st) {
     if (typeof window !== 'undefined') {

@@ -6,15 +6,18 @@ TODO
 - ce-box style disappear in svelte, why?
 - event listeners mas automatizado?, y que se auto eliminen on dismount?
 - evt, $, autoupdate en do() ?, this.props confuso alli, mejor this.props = {...} ??, que ya hace autoupdate?
+- re
 
 # qomp 
 
 Main features
 
-- No shadow root, SSR
-- Minimal, explicit, no hidden magic, simple enough to be debugable by user, future proof.
-- < 1kb gziped
-- not intended for maximun, speed, eficiency, but for developer experience, control and future proof. Just cross-framework, debugable, tinkerable base for making components you could still use in 10 or 20 years.
+- Webcomponentes without shadow root, SSR+hydration capable
+- Minimal, explicit, no hidden magic, simple enough to be understandable and owned by the user, future proof, no dependencies on library changes in the future
+- No classes and no bizarre hooks
+- < 1kb gziped, really, as is, no build needed to strip it out.
+- Cross framework: use it alone, with Svelte, React, Vue, in the server...
+- Not intended for maximun, speed, eficiency, state-of-the-art engineering... but for long lasting developer experience and stability, control and future proof. Just cross-framework, debugable, tinkerable base for making components you could still use in 10 or 20 years.
 
 - grouped styles with defineAll, not a 'style' inside each ce,
 - styles scoped with ${tag}
