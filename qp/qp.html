@@ -4,12 +4,13 @@
   <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
+
 </head>
 <body>
    
 
   <h1>ce</h1>
-  <qp-count id="c1" myattr="attr value" onchange="console.log(event.detail)">c1 </qp-count> 
+  <qp-count id="c1" myattr="attr value" onchange="console.log('qp-count onchange',event.detail)">c1 </qp-count> 
   <hr>
   <qp-count id="c2"><b>hola</b> </qp-count>
 
@@ -20,7 +21,7 @@
   </qp-box>
 
   <hr>
-  <ce-count onflus="console.log('flus')" onchange="console.log('change', event.detail)"></ce-count>
+  <ce-count onflus="console.log('flus')" onchange="console.log('ce-count onchange', event.detail)"></ce-count>
 
   <script type="module">
     // setTimeout(()=>{
@@ -37,7 +38,6 @@
     
     // -- Full Client Side Rendering (better before body)
     qomp.defineAll();
-    qomp.styleAll().apply();
     // ;[ce2CountTag].forEach(tag=>tag.define());
 
 

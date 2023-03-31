@@ -32,32 +32,25 @@ export default function qomp(importMetaUrl, tagDef) {
 };
 
 qomp.tags = [];
-qomp.defineAll = function () {
-  this.tags.forEach(tagDef=>tagDef.define());
-};
-qomp.styleAll = function () {
-  const stAll = {
-    links : [],
-    css : '',
-    apply() {
-      if (typeof window !== 'undefined') {
-        stAll.links.forEach(link=>addCssLink(link));
-        if (stAll.css.trim().length > 0) addStyleElement(stAll.css);
-      }
-    }
-  }
 
+// -- client only
+qomp.defineAll = function (withStyle = true) {
   this.tags.forEach(tagDef=>{
-    let st = tagDef.style();
-    console.log(tagDef.tagName, st)
-    if (st.link.length > 0) stAll.links.push(st.link);
-    if (st.css.length > 0) { 
-      stAll.css += '\n' + st.css; }
-  })
+    tagDef.define(false);   // withStyle false, as we do all styles together afterwards
+  });
+  if (withStyle) createStyle(qomp.styleAll());  
+};
 
-  return stAll;
+// -- client or server
+qomp.styleAll = function () {
+  let styleAll = {link: [], css : ''};
+  this.tags.forEach(tagDef=>{
+    let style = tagDef.style();
+    if (style.link.length) styleAll.link.push(style.link);
+    if (style.css.length) styleAll.css += '\n' + style.css;
+  });
+  return styleAll;
 }
-
 
 
 /**
@@ -91,36 +84,26 @@ function render(elOrAttr='', props={}, innerHTML='') {
   return html;
 };
 
-
 function style() {
   const tagDef = this;
-
-  const st = {
-    link : '',
-    css : '',
-    apply() {
-      if (typeof window !== 'undefined') {
-        if (st.link.length > 0) addCssLink(st.link);
-        else if (st.css.length >0) addStyleElement(st.css);
-      }
-    } 
-  }
+  const st = { link : [],  css : '' } ;
 
   if (tagDef.css === true) {
     st.link = tagDef.importMetaUrl.replace('.js','.css');
   } else {
     st.css = tagDef.css(tagDef.tagName).trim();
   }
-
   return st;
 }
 
 
 
 /**
- * once for each tag
+ * web component definition: render html + insert styles (client only 
+ * OR just hydrate (events + state + update)
+ * once for each tag, used in browser only
 */
-function define() {
+function define(withStyle=true) {
   const tagDef = this;
 
   customElements.define(tagDef.tagName, class extends HTMLElement {
@@ -152,19 +135,20 @@ function define() {
 
       elDom.do = elPriv.do;
     }
-    
+   
+    // -- reactive .props
     set props(p) {
       const {elPriv} = this;
       Object.assign(elPriv.props,p);
       if (elPriv.ready) elPriv.update();
     }
-
     get props() {
       const {elPriv} = this;
       return {...elPriv.props}
     }
 
     /**
+     * each instance in the html of each tagDef
      * once for each elDom
     */
     connectedCallback() {
@@ -179,6 +163,7 @@ function define() {
         // -- no render if it was already SSR
         const dataProps = elDom.dataset.props;
         if (dataProps) {
+          // -- ssr prerendered
           if (dataProps !== 'client-rendered')  { 
             // -- get stringified ssr props
             Object.assign(elPriv.props, JSON.parse(fromBase64(elDom.dataset.props)));
@@ -188,10 +173,11 @@ function define() {
         } else {
           // -- client render
           elDom.innerHTML = tagDef.render(elDom, elPriv.props, elDom.innerHTML);
+          // -- if defineAll well do this later all at once
+          if (withStyle) createStyle(tagDef.style())
           elDom.dataset.props = 'client-rendered';
-          // elPriv.rendered = true;
-        }
-        // -- render debut
+            }
+        // -- render 
         if (tagDef.onMount) tagDef.onMount({el:elDom});
 
         elPriv.update();
@@ -211,6 +197,19 @@ function define() {
   })
 };
 
+
+ // -- HELPERS
+
+ function createStyle(st) {
+    if (typeof window !== 'undefined') {
+      if (st.css.length >0) addStyleElement(st.css);
+      if (st.link.length > 0) {
+        let links = typeof st.link  === 'string' ? [st.link] : st.link;
+        links.forEach(link=>addCssLink(link));
+      }
+    }
+ }
+
 function addCssLink(cssUrl) {
   const linkEl = document.createElement("link");
   linkEl.setAttribute("rel", "stylesheet");
@@ -229,13 +228,13 @@ function addStyleElement(css) {
 
 // window.qomp = qomp
 
-// --helper, independent of 'comp'
-export function linkCss(jsUrl) {
-  const linkEl = document.createElement("link");
-  linkEl.setAttribute("rel", "stylesheet");
-  linkEl.setAttribute("href", jsUrl.replace('.js','.css'));
-  document.head.append(linkEl);
-}
+// // --helper, independent of 'comp'
+// export function linkCss(jsUrl) {
+//   const linkEl = document.createElement("link");
+//   linkEl.setAttribute("rel", "stylesheet");
+//   linkEl.setAttribute("href", jsUrl.replace('.js','.css'));
+//   document.head.append(linkEl);
+// }
 
 
 // function uid (prefix='') {
