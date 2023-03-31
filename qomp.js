@@ -35,10 +35,11 @@ qomp.tags = [];
 
 // -- client only
 qomp.defineAll = function (withStyle = true) {
+  if (withStyle) createStyle(qomp.styleAll());  
+  
   this.tags.forEach(tagDef=>{
     tagDef.define(false);   // withStyle false, as we do all styles together afterwards
   });
-  if (withStyle) createStyle(qomp.styleAll());  
 };
 
 // -- client or server
@@ -105,6 +106,8 @@ function style() {
 */
 function define(withStyle=true) {
   const tagDef = this;
+
+  if (withStyle) createStyle(tagDef.style())
 
   customElements.define(tagDef.tagName, class extends HTMLElement {
 
@@ -174,9 +177,8 @@ function define(withStyle=true) {
           // -- client render
           elDom.innerHTML = tagDef.render(elDom, elPriv.props, elDom.innerHTML);
           // -- if defineAll well do this later all at once
-          if (withStyle) createStyle(tagDef.style())
           elDom.dataset.props = 'client-rendered';
-            }
+        }
         // -- render 
         if (tagDef.onMount) tagDef.onMount({el:elDom});
 
