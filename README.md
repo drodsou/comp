@@ -3,10 +3,10 @@
 Forget all use qomp (defineCE2)
 
 TODO
+- is it possible to prevent double wc definition (rerender) in nested components?
 - ce-box style disappear in svelte, why?
-- event listeners mas automatizado?, y que se auto eliminen on dismount?
-- evt, $, autoupdate en do() ?, this.props confuso alli, mejor this.props = {...} ??, que ya hace autoupdate?
-- re
+- lifecycle willMount...
+
 
 # qomp 
 
@@ -32,11 +32,14 @@ Compatible with:
 - React via wc-react (https://github.com/nmetulev/wc-react) see example below
 - Vue, tested :props and @change, see info bellow
 
-Other features
+Done (other features)
 - style only inyected in first instance of the tag, if several instances of a tag are created.
   - or style: true create links of .css with same name of component .js
 - data-props="client-rendered" prevents client re-render in nested CEs
   - (so, never use data-props on client-side only, its an automatic attriute only)
+- event listeners automated with 'events', auto add on mount and remove on dom dismount
+  - also prevent add listener to elements alredy not in DOM, eg rerendered nested elements
+- update 'set' syntax sugar
 
 # if this lookss too complicated for the job:
 
@@ -95,6 +98,34 @@ function App() {
 }
 ```
 
+# reflections
+
+## mutable props + update, not props setter/setState
+
+- do.action receives private props in 'this', plain objecte, modificable multiple times, sync, without reupdates, until you intentionally call update(), so you can do multiple operations in the state/props until commited with update()
+
+```js
+  const {props, update} = this;
+  props.count++;
+  ...whatever
+  update()
+```
+- if received elDom.props, setter with autoupdate its less convenient
+
+```js
+  this.props = {count: this.props++}  // cannot destructure props, as its a setter
+  // or
+  const p = this.props;
+  p.count++;
+  this.props = p;   // same as update() but less intelligible.
+  // update alread happened
+```
+
+## why not avoiding .update() and diff render
+
+overcomplicated and prone to erroros in edge cases, with update() you specify exactly what happens on the update (maybe a change in content, maybe a calculated change of classes, etc
+And with the $ helper is minimal extra code on the component preventing bloat and unintelligibility of the lib.
+
 
 # improvements for the future (?):
 
@@ -121,6 +152,7 @@ https://caniuse.com/?search=shadowRootmode
 
 ## nested css
 
+when nested css is available in all browsers, maybe skip the style element injection and rely only on css links?
 de-boilerplate element css when using external .css, not having to repeat the tags name n times.
 
 

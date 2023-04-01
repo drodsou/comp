@@ -2,47 +2,44 @@ import qomp from '../qomp.js';
 
 export default qomp(import.meta.url, {
   props : {
-    count: 1
+    count : 1
   },
   attr : ['myattr'],
+  css : true,
 
-  html({innerHTML, props}) {
-    return /*html*/`
-      <button class="inc">
-        Inc ${innerHTML}: <span>${props.count}</span>
-      </button>
-      <button class="reset">Reset</button>
-    `;
+  html: ({props, slot}) => /*html*/`
+    <button class="do-inc">
+      Inc ${slot}: <span class="count">${props.count}</span>
+    </button>
+    <button class="do-reset">Reset</button>
+    <span class="waiting"></span>
+  `,
+ 
+  update : ({props, el, set}) => {
+    // el.querySelector('.count').innerHTML = props.count
+    set('.count', props.count);
+    set('.waiting', props.waiting ? '(wait)' : '');
   },
-  css:true,
 
-  // upd: [
-  //   ['span','innerHTML', 'count']
-  // ],
-  
-  update({el, props, $}) {
-    // $('span').innerHTML = props.count
-    el.querySelector('span').innerHTML = props.count
-  },
-  emitChange : true,
-
-  onMount({el, evt}) {  
-    // -- evt not only more concise, it automatically removes events onDismount
-    evt('.inc','click',()=>el.do.inc(5));
-    evt('.reset','click',()=>el.do.reset());
-    // el.querySelector('.inc').addEventListener('click',()=>el.do.inc(5));
-    // el.querySelector('.reset').addEventListener('click',()=>el.do.reset());
-  },
+  events : ({el}) => [
+    ['.do-inc', 'click', ()=>el.do.inc(5)]
+  , ['.do-reset', 'click', ()=>el.do.reset()]
+  ],
 
   do : {
-    async inc(value = 1) {
+    inc(value = 1) {
       this.props.count += value;
       this.update();
     },
 
     async reset() {
-      this.props.count = 0;
-      this.update();
+      const {props, update} = this;
+      props.waiting = true;
+      update();
+      await new Promise(r=>setTimeout(r,500));  // fetch ...
+      props.waiting = false;
+      props.count = 0;
+      update();
     },
   }
 

@@ -6,14 +6,13 @@ export default qomp(import.meta.url, {
   },
   
   // ${innerHTML}  
-  html({innerHTML, props}) {
+  html({props, slot}) {
     return /*html*/`
       <div>
         <h1>ce2 box</h1>
         <div class="box-value"></div>
         <div class="children">
-          <qp-count id="c3">c33</qp-count>
-          <qp-count id="c4">c44</qp-count>
+          ${slot}
         </div>
       </div>
     `;
