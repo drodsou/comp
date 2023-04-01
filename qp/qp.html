@@ -9,15 +9,22 @@
   </style>
 </head>
 <body>
-  
+  <h1>qp</h1>
   <!-- <qp-count id="c1" myattr="attr value" onchange="console.log('qp-count onchange',event.detail)">c1 </qp-count> 
   <hr>
   <qp-count id="c2"><b>hola</b> </qp-count> -->
 
   <hr>
-  <qp-box>
-    <qp-count id="c3">c3</qp-count>
-  </qp-box>
+  <!-- <qp-box>
+    <span>outer qp-box</span>
+    <qp-box><ce-count></ce-count></qp-box>
+  </qp-box> -->
+
+  <qp-box><ce-count></ce-count><qp-box><button>btn1</button><button>btn2</button></qp-box></qp-box>
+
+
+  <!-- <button>qpbox</button> -->
+  <!-- <qp-count id="c3">c3</qp-count> -->
   <!-- <qp-count id="c4">c4</qp-count> -->
 
   <hr>
@@ -30,10 +37,10 @@
     // },100);
 
     // import ce2CountTag from './qp-count.js';
-    import './qp-count.js';
+    import '../ce/ce-count.js';
+    // import './qp-count.js';
     import './qp-box.js';
     import qomp from '../qomp.js';
-    import '../ce/ce-count.js';
 
     
     // -- Full Client Side Rendering (better before body)

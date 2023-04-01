@@ -12,10 +12,12 @@ export default qomp(import.meta.url, {
         <h1>ce2 box</h1>
         <div class="box-value"></div>
         <div class="children">
-          ${slot}
+          <slot>box default</slot>
+          <slot>second slot</slot>
         </div>
       </div>
     `;
+    // ${slot}
   },
   css,
   

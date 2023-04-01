@@ -3,12 +3,17 @@ customElements.define(tag, class extends HTMLElement {
   
   constructor() {
     super();
-    this.elPriv = {
+    this.mem = {
       props: {count:1}
     }
+    console.log('ce-count CONSTRUCTOR');
   }
+
   connectedCallback() {
-    const props = this.elPriv.props;
+    if (this.mem.ready) {console.log('ce-count skipping reconnect'); return;  }
+
+    console.log('ce-count connected 🟢');
+    const props = this.mem.props;
     
     this.innerHTML = /*html*/`
       
@@ -31,11 +36,18 @@ customElements.define(tag, class extends HTMLElement {
 
     // -- common
     this.update();
-    this.elPriv.ready = true;
+    this.mem.ready = true;
+  }
+
+  disconnectedCallback() {
+      if (this.parentNode) console.log('ce-count skiping temporal disconnet');
+      else console.log('ce-count disconnected 🔴');
+
+    // todo nexttick check if parentnode (remounted) cancel disconnection
   }
 
   update() {
-    const props = this.elPriv.props;
+    const props = this.mem.props;
     this.querySelector('button').innerText = props.count;
     this.dispatchEvent(new CustomEvent('change',{detail: props}));  // works with onchange and Svelte on:change
     // if (this.onchange) this.onchange({detail:props})  // this does not work with on:change in Svelte
@@ -43,13 +55,13 @@ customElements.define(tag, class extends HTMLElement {
 
   // -- common
   set props(p) {
-    const props = this.elPriv.props;
+    const props = this.mem.props;
     Object.assign(props,p);
-    if (this.elPriv.ready) this.update();
+    if (this.mem.ready) this.update();
   }
 
   get props() {
-    const props = this.elPriv.props;
+    const props = this.mem.props;
     return {...props}
   }
 });

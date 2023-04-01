@@ -5,7 +5,7 @@ export default qomp(import.meta.url, {
     count : 1
   },
   attr : ['myattr'],
-  css : true,
+  css,
 
   html: ({props, slot}) => /*html*/`
     <button class="do-inc">
