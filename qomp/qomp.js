@@ -15,7 +15,8 @@ const createStyle = ({link,css}) => {
     links.forEach(l=>toHead('link', {rel:'stylesheet', href: l}));
   }
 }
-const DEBUG = false;
+const DEBUG = true;
+
 
 // ----------- QOMP, MAIN FUNCTION
 
@@ -24,7 +25,7 @@ const DEBUG = false;
  * once per tag
  * client or server
 */
-export default (importMetaUrl, tagDef) => {
+export default function qomp (importMetaUrl, tagDef) {
   const tagObj = Object.assign({
     elCount: 0, importMetaUrl, tagName: importMetaUrl.split('/').pop().split('.').shift(),
     props: {}, attr : [], css : ()=>'', html : ()=>'', update: ()=>{}, events: ()=>[], do : {},
@@ -95,6 +96,7 @@ function renderClient(el, props={}) {
 
   let html = tag.html({props});
   if (!html.includes('<slot>')) {
+    console.log('no slot')
     el.innerHTML = html;
     return;
   }
@@ -107,8 +109,11 @@ function renderClient(el, props={}) {
   el.innerHTML = html;
   for (let c of [...elTmp.childNodes]) { 
     let elSlot = el.querySelector('slot');
-    if (!elSlot) console.warn('Too many child nodes or too few slots in', tag.tagName, el.id);
-    else elSlot.parentNode.replaceChild(c, elSlot);
+    if (elSlot) elSlot.parentNode.replaceChild(c, elSlot)
+    else {
+       console.warn( tag.tagName, el.id, ': more children than slots, or maybe bad closing tag',);
+       break;
+    }
   };
 
 };
@@ -132,11 +137,17 @@ function define(styles=true) {
     constructor () {
       super();
       const el = this;
+      DEBUG && console.log(tag.tagName, el.id, 'constructor');
+
       el.mem = {
         props: Object.assign( {}, tag.props /* mountProps */),
         ready: false,
         // -- instance update, wrapper of tag .update()
         update() {
+          const propsStr = JSON.stringify(el.mem.props)
+          if (el.mem.propsStr === propsStr) return;
+          el.mem.propsStr = propsStr;
+          
           tag.update({el, props:el.mem.props,
             set:(qs,val)=>el.querySelector(qs).innerHTML = val
           }); 
@@ -151,18 +162,7 @@ function define(styles=true) {
       })
 
       // el.do = el.mem.do;
-      DEBUG && console.log(tag.tagName, el.id, 'constructor');
-    }
-   
-    // -- reactive .props
-    set props(p) {
-      const el = this;
-      Object.assign(el.mem.props,p);
-      if (el.mem.ready) el.mem.update();
-    }
-    get props() {
-      const el = this;
-      return {...el.mem.props}
+      
     }
 
     /**
@@ -184,12 +184,12 @@ function define(styles=true) {
         const dataProps = el.dataset.props;
         if (dataProps) {
           // -- ssr prerendered, just get stringified ssr props
-          Object.assign(el.mem.props, JSON.parse(fromBase64(el.dataset.props)));
           DEBUG && console.log(tag.tagName, el.id, 'client hydrating');
+          Object.assign(el.mem.props, JSON.parse(fromBase64(el.dataset.props)));
         } else {
           // -- client render
-          tag.renderClient(el, el.mem.props);
           DEBUG && console.log(tag.tagName, el.id, 'client rendering');
+          tag.renderClient(el, el.mem.props);
         }
         // -- events
         DEBUG && console.log(tag.tagName, el.id, 'addEventListener');
@@ -205,6 +205,7 @@ function define(styles=true) {
       el.mem.ready = true;  // important this be in current tick
     } // -- connectedCallback
 
+
     // -- onDismount: autoremove event listener (if evt is used)
     disconnectedCallback() {
       const el = this
@@ -217,6 +218,18 @@ function define(styles=true) {
       DEBUG && console.log(tag.tagName, el.id, 'removeEventListener');
       el.mem.elEvents.forEach(([qs,ev,fn])=> el.querySelector(qs).removeEventListener(ev, fn));
       el.mem.elEvents=[]
+    } // -- disconnectedCallback
+   
+
+    // -- reactive .props
+    set props(p) {
+      const el = this;
+      Object.assign(el.mem.props,p);
+      if (el.mem.ready) el.mem.update();
+    }
+    get props() {
+      const el = this;
+      return {...el.mem.props}
     }
 
     // -- attributes => props

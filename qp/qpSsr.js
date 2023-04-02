@@ -1,6 +1,6 @@
 import ceCount from './qp-count.js';
 import ceBox from './qp-box.js';
-import qomp from '../qomp.js';
+import qomp from '../qomp/qomp.js';
 
 
 

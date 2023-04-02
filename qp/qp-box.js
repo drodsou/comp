@@ -1,4 +1,4 @@
-import qomp from '../qomp.js';
+import qomp from '../qomp/qomp.js';
 
 export default qomp(import.meta.url, {
   props : {
