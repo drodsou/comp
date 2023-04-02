@@ -5,11 +5,11 @@ export default qomp(import.meta.url, {
     count : 1
   },
   attr : ['myattr'],
-  css,
+  css:true,
 
-  html: ({props, slot}) => /*html*/`
+  html: ({props}) => /*html*/`
     <button class="do-inc">
-      Inc ${slot}: <span class="count">${props.count}</span>
+      Inc <slot></slot>: <span class="count">${props.count}</span>
     </button>
     <button class="do-reset">Reset</button>
     <span class="waiting"></span>

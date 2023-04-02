@@ -3,7 +3,6 @@
 Forget all use qomp (defineCE2)
 
 TODO
-- is it possible to prevent double wc definition (rerender) in nested components?
 - ce-box style disappear in svelte, why?
 - lifecycle willMount...
 
@@ -40,6 +39,8 @@ Done (other features)
 - event listeners automated with 'events', auto add on mount and remove on dom dismount
   - also prevent add listener to elements alredy not in DOM, eg rerendered nested elements
 - update 'set' syntax sugar
+- `<slot>` instead of $slot in render: preserve already rendered nested child elements (appendChild) instead of multiple rerender of all 
+- svelte nested working well too
 
 # if this lookss too complicated for the job:
 

@@ -16,7 +16,7 @@ const createStyle = ({link,css}) => {
     links.forEach(l=>toHead('link', {rel:'stylesheet', href: l}));
   }
 }
-const CLIENT_RENDERED = 'client-rendered';
+const DEBUG = false;
 
 
 
@@ -27,8 +27,8 @@ const CLIENT_RENDERED = 'client-rendered';
  * once per tag
  * client or server
 */
-export default function qomp(importMetaUrl, tag) {
-  tag = Object.assign( renderServer, {
+export default function qomp(importMetaUrl, tagDef) {
+  const tagObj = Object.assign({
     elCount: 0, 
     importMetaUrl, 
     tagName: importMetaUrl.split('/').pop().split('.').shift(),
@@ -40,10 +40,11 @@ export default function qomp(importMetaUrl, tag) {
     events: ()=>[],
     do : {},
     style, renderClient, define  // see tagdef functions bellow
-  }, tag);
-
+  }, tagDef);
+  
   // TODO: willUpdate, didUpdate, willMount, didMount, willUnmount, didUnmount
-
+  // -- syntax sugar for SSR qpTag('', props, children) instead of qpTag.renderServer('', props, children)
+  const tag = Object.assign( (...args)=>renderServer.apply(tagObj, args), tagObj);
   qomp.tags.push(tag);
   return tag;
 };
@@ -93,38 +94,6 @@ function style() {
   return st;
 }
 
-
-/**
- * Once per instance (executed), once per tag (defined)
- * client or server
- * wrapper of .html()
- * Callable from .define automatically on client, or directly on server for SSR
- * @param elOrAttr - client:dom elemnt, server string with attributes of the would be element
- */
-// function render(elOrAttr='', props={}, slot='') {
-//   const tag = this;
-//   tag.elCount++;   // here bc it's alweays called, server or client
-
-//   let el
-//   let attr
-//   if (typeof elOrAttr === 'string') attr = elOrAttr
-//   else el = elOrAttr;
-
-//   if (Array.isArray(slot)) slot = slot.join('\n');
-
-//   let html = tag.html({props, slot});
-//   if (!el) {
-//     // -- ssr rendering, add stringified props for the client
-//     html = `
-//       <${tag.tagName} ${attr} data-props="${toBase64(JSON.stringify(props))}">
-//         ${html}
-//       </${tag.tagName}>
-//     `;
-//   }
-
-//   return html;
-// };
-
 function renderServer(attr='', props={}, slot='') {
   const tag = this;
   tag.elCount++;   // here bc it's alweays called, server or client
@@ -139,7 +108,6 @@ function renderServer(attr='', props={}, slot='') {
 
 function renderClient(el, props={}) {
   const tag = this;
-  console.log('renderClient', tag.tagName);
   tag.elCount++;   // here bc it's alweays called, server or client
 
   let html = tag.html({props});
@@ -148,16 +116,19 @@ function renderClient(el, props={}) {
     return;
   }
 
+  // -- preserve already rendered children before overwrting innerHTML
   let elTmp = document.createElement('div');
-  for (let c of [...el.children]) { elTmp.appendChild(c) };
-    el.innerHTML = html;
-  for (let c of [...elTmp.children]) { 
+  
+  const elChildNodes = [...el.childNodes].filter(c=>c.textContent.trim());
+  elChildNodes.forEach(c=>elTmp.appendChild(c));   
+
+  el.innerHTML = html;
+  for (let c of [...elTmp.childNodes]) { 
     let elSlot = el.querySelector('slot');
-    elSlot.parentNode.replaceChild(c, elSlot);
+    if (!elSlot) console.warn('Too many child nodes or too few slots in', tag.tagName, el.id);
+    else elSlot.parentNode.replaceChild(c, elSlot);
   };
-   
-  el.dataset.props = CLIENT_RENDERED;
-  console.log('exit');
+
 };
 
 
@@ -173,6 +144,7 @@ function define(withStyle=true) {
   if (withStyle) createStyle(tag.style())
 
   // -- inside, EACH INSTANCE
+  DEBUG && console.log(tag.tagName, 'define');
 
   customElements.define(tag.tagName, class extends HTMLElement {
 
@@ -198,6 +170,7 @@ function define(withStyle=true) {
       })
 
       // el.do = el.mem.do;
+      DEBUG && console.log(tag.tagName, el.id, 'constructor');
     }
    
     // -- reactive .props
@@ -217,47 +190,50 @@ function define(withStyle=true) {
     */
     connectedCallback() {
       const el = this;
-      if (this.mem.ready) {console.log('qomp skip reconnect') ;return; } // reconnected
+      if (this.mem.ready) {
+        DEBUG && console.log(tag.tagName, el.id, 'skipping reconnect');
+        return; 
+      } 
+      DEBUG && console.log(tag.tagName, el.id, 'connected');
       
       // -- this for Svelte compatibility that messes with innerHTML, removing it and appending it later
       // -- so we wait for "later" to get it
-      
       nextTick(()=>{
         // -- no render if it was already SSR
         const dataProps = el.dataset.props;
         if (dataProps) {
-          // -- ssr prerendered
-          if (dataProps !== CLIENT_RENDERED)  { 
-            // -- get stringified ssr props
-            Object.assign(el.mem.props, JSON.parse(fromBase64(el.dataset.props)));
-          } 
-          // else  console.log('omiting client re-render'); 
-
+          // -- ssr prerendered, just get stringified ssr props
+          Object.assign(el.mem.props, JSON.parse(fromBase64(el.dataset.props)));
+          DEBUG && console.log(tag.tagName, el.id, 'client hydrating');
         } else {
           // -- client render
           tag.renderClient(el, el.mem.props);
+          DEBUG && console.log(tag.tagName, el.id, 'client rendering');
         }
         // -- events
-        nextTick(()=>{
-          // check if render() persisted, or already not in DOM (nested child already rerender, skip)
-          if (!el.parentElement) return;  
+        DEBUG && console.log(tag.tagName, el.id, 'addEventListener');
+        el.mem.elEvents = tag.events({el});
+        el.mem.elEvents.forEach(([qs,ev,fn])=>{
+          el.querySelector(qs).addEventListener(ev, fn);
+        })
 
-          el.mem.elEvents = tag.events({el});
-          el.mem.elEvents.forEach(([qs,ev,fn])=>{
-            el.querySelector(qs).addEventListener(ev, fn);
-          })
-        });
-
-        // -- first auto update ??  (html() should have best practices of fiilling props, even thou is redundant with update
+        // -- first auto update ??  (No, html() should have best practices of fiilling props, even thou is redundant with update
         // el.mem.update();
 
-        el.mem.ready = true;
       })
+      el.mem.ready = true;  // important this be in current tick
     } // -- connectedCallback
 
     // -- onDismount: autoremove event listener (if evt is used)
     disconnectedCallback() {
-      const el = this;
+      const el = this
+      if (el.parentElement) {
+        DEBUG && console.log(tag.tagName, el.id, 'skipping temporal disconnect');
+        return;
+      }
+      DEBUG && console.log(tag.tagName, el.id, 'disconnect');
+
+      DEBUG && console.log(tag.tagName, el.id, 'removeEventListener');
       el.mem.elEvents.forEach(([qs,ev,fn])=> el.querySelector(qs).removeEventListener(ev, fn));
       el.mem.elEvents=[]
     }

@@ -24,12 +24,7 @@ export default qomp(import.meta.url, {
   update({el, props}) {
     el.querySelector('.box-value').innerHTML = props.value
   },
-  
-  onMount({el}) {
-    for (let child of el.querySelector('.children').children) {
-      child.props = {onChange: (value)=>el.props={value} }
-    }
-  },
+
   do: { }
 });
 
