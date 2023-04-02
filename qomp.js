@@ -1,5 +1,4 @@
 // -- HELPERS
-
 const toBase64 = btoa ? btoa : (txt)=>Buffer.from(txt).toString('base64'); 
 const fromBase64 = atob ? atob : (b64)=>Buffer.from(b64, 'base64').toString('utf-8')
 const nextTick = (fn) => Promise.resolve().then(fn);
@@ -18,32 +17,22 @@ const createStyle = ({link,css}) => {
 }
 const DEBUG = false;
 
-
-
 // ----------- QOMP, MAIN FUNCTION
 
 /**
- * main creation function
+ * main creation function: qomp
  * once per tag
  * client or server
 */
-export default function qomp(importMetaUrl, tagDef) {
+export default (importMetaUrl, tagDef) => {
   const tagObj = Object.assign({
-    elCount: 0, 
-    importMetaUrl, 
-    tagName: importMetaUrl.split('/').pop().split('.').shift(),
-    props: {},
-    attr : [],
-    css : ()=>'',
-    html : ()=>'',
-    update: ()=>{},
-    events: ()=>[],
-    do : {},
+    elCount: 0, importMetaUrl, tagName: importMetaUrl.split('/').pop().split('.').shift(),
+    props: {}, attr : [], css : ()=>'', html : ()=>'', update: ()=>{}, events: ()=>[], do : {},
     style, renderClient, define  // see tagdef functions bellow
   }, tagDef);
   
   // TODO: willUpdate, didUpdate, willMount, didMount, willUnmount, didUnmount
-  // -- syntax sugar for SSR qpTag('', props, children) instead of qpTag.renderServer('', props, children)
+  // -- syntax sugar for SSR: qpTag('', props, children) instead of qpTag.renderServer('', props, children)
   const tag = Object.assign( (...args)=>renderServer.apply(tagObj, args), tagObj);
   qomp.tags.push(tag);
   return tag;
@@ -54,7 +43,7 @@ qomp.tags = [];
 /**
  * once for all tags, client or server
  */
-qomp.styleAll = function () {
+qomp.styleAll = () => {
   let styleAll = {link: [], css : ''};
   qomp.tags.forEach(tag=>{
     let style = tag.style();
@@ -65,17 +54,15 @@ qomp.styleAll = function () {
 }
 
 // -- once for all tags, client only
-qomp.defineAll = function (withStyle = true) {
-  if (withStyle) createStyle(qomp.styleAll());  
-  
+qomp.defineAll = (styles = true) => {
+  if (styles) createStyle(qomp.styleAll());  
+
   qomp.tags.forEach(tag=>{
-    tag.define(false);   // withStyle false, as we already did it for all styles together
+    tag.define(false);   // styles=false, as we already did it for all styles together
   });
 };
 
-
 // -- TAGDEF FUNCTIONS: style, render, define
-
 
 /**
  * once per tag, 
@@ -86,11 +73,8 @@ function style() {
   const tag = this;
   const st = {} ;   // {link, css}
 
-  if (tag.css === true) {
-    st.link = tag.importMetaUrl.replace('.js','.css');
-  } else {
-    st.css = tag.css(tag.tagName).trim();
-  }
+  if (tag.css === true) st.link = tag.importMetaUrl.replace('.js','.css')
+  else st.css = tag.css(tag.tagName).trim(); 
   return st;
 }
 
@@ -98,11 +82,10 @@ function renderServer(attr='', props={}, slot='') {
   const tag = this;
   tag.elCount++;   // here bc it's alweays called, server or client
   if (Array.isArray(slot)) slot = slot.join('\n');
-  let html = `
-    <${tag.tagName} ${attr} data-props="${toBase64(JSON.stringify(props))}">
-      ${tag.html({props}).replace('<slot></slot>','<slot>' + slot + '</slot>')}
-    </${tag.tagName}>
-  `;
+  let html = 
+      `<${tag.tagName} ${attr} data-props="${toBase64(JSON.stringify(props))}">`
+    + `  ${tag.html({props}).replace('<slot></slot>',slot)}`
+    + `</${tag.tagName}>`;
   return html;
 };
 
@@ -118,7 +101,6 @@ function renderClient(el, props={}) {
 
   // -- preserve already rendered children before overwrting innerHTML
   let elTmp = document.createElement('div');
-  
   const elChildNodes = [...el.childNodes].filter(c=>c.textContent.trim());
   elChildNodes.forEach(c=>elTmp.appendChild(c));   
 
@@ -137,16 +119,15 @@ function renderClient(el, props={}) {
  * once per instance (inside), once per tag (outside), 
  * client only
  */ 
-function define(withStyle=true) {
+function define(styles=true) {
   // -- ouside, each tag
   const tag = this;
-
-  if (withStyle) createStyle(tag.style())
-
-  // -- inside, EACH INSTANCE
   DEBUG && console.log(tag.tagName, 'define');
 
+  if (styles) createStyle(tag.style())
+  
   customElements.define(tag.tagName, class extends HTMLElement {
+    // -- inside, EACH INSTANCE
 
     constructor () {
       super();

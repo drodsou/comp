@@ -3,9 +3,9 @@
 Forget all use qomp (defineCE2)
 
 TODO
-- ce-box style disappear in svelte, why?
+- examples ssr, vanilla, react, vue
+- ui components time (md min, more)
 - lifecycle willMount...
-
 
 # qomp 
 
