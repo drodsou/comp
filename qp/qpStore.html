@@ -18,10 +18,16 @@
     import qomp from '../qomp/qomp.js';
     qomp.defineAll();
 
-    window.store = createStore({});
+    let dataInit = {
+      qpcount1:{count:1}, 
+      qpcount2:{count:2},
+      otherThings: true,
+    }
+    window.store = createStore({...dataInit});
+
     store.subscribe(st=>console.log('qpStore.html', st.data));
-    store.subscribe(st=>qs('#reset span').innerText = st.data.count);
-    qs('#reset').addEventListener('click', ()=>store.data = {count:0});
+    store.subscribe(st=>qs('#reset span').innerText = st.data.qpcount1.count + '|' + st.data.qpcount2.count);
+    qs('#reset').addEventListener('click', ()=>store.data = dataInit);
         
     // -- not need if store is global, as seen bellow in qp-count
     // store.subscribe(st => qs('qp-count').props = {count:st.data.count}, false);
@@ -31,7 +37,8 @@
 
 
   <button id="reset">reset <span>?</span></button>
-  <qp-count subscribe="store.data" onchange="store.data = event.detail"></qp-count>
+  <qp-count subscribe="store.data.qpcount1" onchange="store.data = {qpcount1: event.detail}"></qp-count>
+  <qp-count subscribe="store.data.qpcount2" onchange="store.data = {qpcount2: event.detail}"></qp-count>
 
   
 
