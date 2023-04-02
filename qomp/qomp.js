@@ -15,7 +15,8 @@ const createStyle = ({link,css}) => {
     links.forEach(l=>toHead('link', {rel:'stylesheet', href: l}));
   }
 }
-const DEBUG = true;
+const objValue = (obj, path)=>path.reduce((prevObj, currKey) => prevObj[currKey], obj)  // ex: objValue(window,['document','body'])
+const DEBUG = false;
 
 
 // ----------- QOMP, MAIN FUNCTION
@@ -28,10 +29,10 @@ const DEBUG = true;
 export default function qomp (importMetaUrl, tagDef) {
   const tagObj = Object.assign({
     elCount: 0, importMetaUrl, tagName: importMetaUrl.split('/').pop().split('.').shift(),
-    props: {}, attr : [], css : ()=>'', html : ()=>'', update: ()=>{}, events: ()=>[], do : {},
+    attr : [], props: {}, css : ()=>'', html : ()=>'', update: ()=>{}, events: ()=>[], do : {}, 
     style, renderClient, define  // see tagdef functions bellow
   }, tagDef);
-  
+  tagObj.attr.push('subscribe');
   // TODO: willUpdate, didUpdate, willMount, didMount, willUnmount, didUnmount
   // -- syntax sugar for SSR: qpTag('', props, children) instead of qpTag.renderServer('', props, children)
   const tag = Object.assign( (...args)=>renderServer.apply(tagObj, args), tagObj);
@@ -96,7 +97,6 @@ function renderClient(el, props={}) {
 
   let html = tag.html({props});
   if (!html.includes('<slot>')) {
-    console.log('no slot')
     el.innerHTML = html;
     return;
   }
@@ -148,8 +148,8 @@ function define(styles=true) {
           if (el.mem.propsStr === propsStr) return;
           el.mem.propsStr = propsStr;
           
-          tag.update({el, props:el.mem.props,
-            set:(qs,val)=>el.querySelector(qs).innerHTML = val
+          tag.update({el, props:el.mem.props, set:(qs,val)=>{
+            el.querySelector(qs).innerHTML = val;}
           }); 
           el.dispatchEvent(new CustomEvent('change',{detail: {...el.mem.props}} ));  // works with onchange and Svelte on:change
         },
@@ -201,8 +201,9 @@ function define(styles=true) {
         // -- first auto update ??  (No, html() should have best practices of fiilling props, even thou is redundant with update
         // el.mem.update();
 
+        el.mem.ready = true;  // important this be in current tick (WHY??)
       })
-      el.mem.ready = true;  // important this be in current tick
+      
     } // -- connectedCallback
 
 
@@ -218,6 +219,7 @@ function define(styles=true) {
       DEBUG && console.log(tag.tagName, el.id, 'removeEventListener');
       el.mem.elEvents.forEach(([qs,ev,fn])=> el.querySelector(qs).removeEventListener(ev, fn));
       el.mem.elEvents=[]
+      if (el.mem.unsubscribe) el.mem.unsubscribe();
     } // -- disconnectedCallback
    
 
@@ -238,9 +240,19 @@ function define(styles=true) {
     }
     attributeChangedCallback(name, oldValue, newValue) {
       const el = this;
-      el.props = {[name] : newValue}    // setter that triggers update
-    }
+      if (name !== 'subscribe') {
+        el.props = {[name] : newValue}    // setter that triggers update
+        return;
+      }
+      nextTick(()=>{
+        if (el.mem.unsubscribe) el.mem.unsubscribe();
+        let [store, ...path] = newValue.split('.');
+        el.mem.unsubscribe = window[store].subscribe((st)=>{
+          el.props = objValue(st,path)
+        });
+      });
+    };  // -- attributeChangedCallback
 
-  })
-};
+  })  // -- customElements.define
+};  // tag .define()
 

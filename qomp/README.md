@@ -12,9 +12,9 @@ TODO
 Main features
 
 - Webcomponentes without shadow root, SSR+hydration capable
-- Minimal, explicit, no hidden magic, simple enough to be understandable and owned by the user, future proof, no dependencies on library changes in the future
-- No classes and no bizarre hooks
-- < 1kb gziped, really, as is, no build needed to strip it out.
+- Minimal, explicit, no hidden magic, library simple enough to be understandable and owned by the user, future proof, no dependencies on library changes in the future
+- Create web components with no classes AND no (bizarre) hooks
+- < 2kb gziped, <3kb min, <8k dev. Really, as is, no build needed to strip it out.
 - Cross framework: use it alone, with Svelte, React, Vue, in the server...
 - Not intended for maximun, speed, eficiency, state-of-the-art engineering... but for long lasting developer experience and stability, control and future proof. Just cross-framework, debugable, tinkerable base for making components you could still use in 10 or 20 years.
 
@@ -164,7 +164,7 @@ de-boilerplate element css when using external .css, not having to repeat the ta
 
 Minimal no-build javascript component system.
 
-Example project, with base library in comp/comp.js (1.5kb, 0.6kb compressed)
+
 
 Aimed for simple projects with few components in a no-build scenario.
 
