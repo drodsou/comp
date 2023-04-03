@@ -32,7 +32,7 @@ export default function qomp (importMetaUrl, tagDef) {
     attr : [], props: {}, css : ()=>'', html : ()=>'', update: ()=>{}, events: ()=>[], do : {}, 
     style, renderClient, define  // see tagdef functions bellow
   }, tagDef);
-  tagObj.attr.push('subscribe');
+  tagObj.attr = tagObj.attr.concat(['subscribe','events','update']);
   // TODO: willUpdate, didUpdate, willMount, didMount, willUnmount, didUnmount
   // -- syntax sugar for SSR: qpTag('', props, children) instead of qpTag.renderServer('', props, children)
   const tag = Object.assign( (...args)=>renderServer.apply(tagObj, args), tagObj);
@@ -56,11 +56,11 @@ qomp.styleAll = () => {
 }
 
 // -- once for all tags, client only
-qomp.defineAll = (styles = true) => {
+qomp.defineAll = ({styles=true, context=window}={}) => {
   if (styles) createStyle(qomp.styleAll());  
 
   qomp.tags.forEach(tag=>{
-    tag.define(false);   // styles=false, as we already did it for all styles together
+    tag.define({styles:false, context});   //  we already did all styles together
   });
 };
 
@@ -124,7 +124,7 @@ function renderClient(el, props={}) {
  * once per instance (inside), once per tag (outside), 
  * client only
  */ 
-function define(styles=true) {
+function define({styles=true, context=window}={}) {
   // -- ouside, each tag
   const tag = this;
   DEBUG && console.log(tag.tagName, 'define');
@@ -148,12 +148,13 @@ function define(styles=true) {
           if (el.mem.propsStr === propsStr) return;
           el.mem.propsStr = propsStr;
           
-          tag.update({el, props:el.mem.props, set:(qs,val)=>{
+          ;(el.mem.updateAttr || tag.update)({el, props:el.mem.props, set:(qs,val)=>{
             el.querySelector(qs).innerHTML = val;}
           }); 
+
           el.dispatchEvent(new CustomEvent('change',{detail: {...el.mem.props}} ));  // works with onchange and Svelte on:change
         },
-        elEvents : []
+        elEvents : undefined
       }
       el.do = {}
       Object.entries(tag.do).forEach(([key,fn])=>{
@@ -193,13 +194,13 @@ function define(styles=true) {
         }
         // -- events
         DEBUG && console.log(tag.tagName, el.id, 'addEventListener');
-        el.mem.elEvents = tag.events({el});
+        el.mem.elEvents = el.mem.elEvents || tag.events({el});  // may be set by 'events' attribute
         el.mem.elEvents.forEach(([qs,ev,fn])=>{
           el.querySelector(qs).addEventListener(ev, fn);
         })
 
         // -- first auto update ??  (No, html() should have best practices of fiilling props, even thou is redundant with update
-        // el.mem.update();
+        el.mem.update();  // necesario para updateAttr, TODO: ver si se puede evitar
 
         el.mem.ready = true;  // important this be in current tick (WHY??)
       })
@@ -240,17 +241,31 @@ function define(styles=true) {
     }
     attributeChangedCallback(name, oldValue, newValue) {
       const el = this;
-      if (name !== 'subscribe') {
-        el.props = {[name] : newValue}    // setter that triggers update
-        return;
-      }
-      nextTick(()=>{
-        if (el.mem.unsubscribe) el.mem.unsubscribe();
-        let [store, ...path] = newValue.split('.');
-        el.mem.unsubscribe = window[store].subscribe((st)=>{
-          el.props = objValue(st,path)
+      if (name === 'subscribe') {
+        nextTick(()=>{
+          if (el.mem.unsubscribe) el.mem.unsubscribe();
+          let [store, ...path] = newValue.split('.');
+          el.mem.unsubscribe = context[store].subscribe((st)=>{
+            el.props = objValue(st,path)
+          });
         });
-      });
+      } else if (name === 'events') {
+        el.mem.elEvents = newValue.split(';').map(a=>a.split(':').map(b=>b.trim()))
+          .map(([qs,ev,fnPath, ...fnArgs])=>({qs,ev,fnPath,fnArgs}))
+          .map(({qs,ev,fnPath,fnArgs})=>{
+            const fnCtx = objValue(context,fnPath.split('.'));
+            const fn = ()=>fnCtx.apply(null,fnArgs)
+            return [qs,ev,fn];
+          });
+      } else if (name === 'update') {          
+        let sets = newValue.split(';').map(a=>a.split(':').map(b=>b.trim()))
+        el.mem.updateAttr = ({props, el, set}) => {
+          sets.forEach(([qs,prop])=>{ set(qs, props[prop]) });
+          // TODO: allow other than props, and other than innerHTML (modify set() fnction)
+        }
+      } else {
+        el.props = {[name] : newValue}    // setter that triggers update
+      }
     };  // -- attributeChangedCallback
 
   })  // -- customElements.define

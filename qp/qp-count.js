@@ -19,7 +19,9 @@ export default qomp(import.meta.url, {
     // el.querySelector('.count').innerHTML = props.count
     set('.count', props.count);
     set('.waiting', props.waiting ? '(wait)' : '');
+    console.log(el)
   },
+
 
   events : ({el}) => [
     ['.do-inc', 'click', ()=>el.do.inc(5)]

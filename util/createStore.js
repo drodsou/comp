@@ -21,6 +21,10 @@ export default function createStore(dataObj={}) {
       dataStrBefore = dataStrNow;
       runSubs();
     },
+    update(fn) {
+      if (fn) Object.assign(dataObj, fn({...dataObj}));
+      runSubs();
+    },
 
     // svelte compatible for state AND computed, without need for derived stores (!)
     subscribe(fn, runOnSubscribe=true) {

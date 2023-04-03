@@ -16,14 +16,15 @@
 
     import './qp-count.js';
     import qomp from '../qomp/qomp.js';
-    qomp.defineAll();
+    
 
     let dataInit = {
       qpcount1:{count:1}, 
       qpcount2:{count:2},
       otherThings: true,
     }
-    window.store = createStore({...dataInit});
+    const store = createStore({...dataInit});
+    qomp.defineAll({context:{store}});
 
     store.subscribe(st=>console.log('qpStore.html', st.data));
     store.subscribe(st=>qs('#reset span').innerText = st.data.qpcount1.count + '|' + st.data.qpcount2.count);

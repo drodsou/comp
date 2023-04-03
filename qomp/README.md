@@ -41,8 +41,15 @@ Done (other features)
 - update 'set' syntax sugar
 - `<slot>` instead of $slot in render: preserve already rendered nested child elements (appendChild) instead of multiple rerender of all 
 - svelte nested working well too
+- special attributes: subscribe, events, update
+  - qp-context (!)
 
-# if this lookss too complicated for the job:
+
+# Narrative
+
+- start with basic customElement patter:
+
+## if this lookss too complicated for the job:
 
 If you just need a simple client side webcomponent (without nesting), that even works with Svelte 'props'
 
@@ -50,11 +57,26 @@ If you just need a simple client side webcomponent (without nesting), that even 
 see example: ce-vanille-counter.js
 ```
 
-# why not just plain text and skip all the web components mess?
+## why not just plain text and skip all the web components mess?
 
 - E.g: with plain text html, in Svelte there is no space between "mounts the element" and y "looks if it has .props property". onMount is too late and main.js is too soon, it does not exist in the DOM yet
 
 - mount comes by default, no need of manual mount
+
+## now that we understand why qomp:
+
+Order of incremental exposing to newcomer:
+
+ 1. events instead of addEventlistener (autoremove,etc)
+ 2. set() instead of el.querySelector()....
+ 3. stores, subscribe props
+ 4. attribute subscribe
+ 5. attribute update (like set)
+ 6. attribute events (like events)
+
+
+
+
 
 # use in Vue
 

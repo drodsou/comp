@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    body { background-color: black; color:white; }
+  </style>
+</head>
+<body>
+  <script type="module">
+
+    import createStore from '../util/createStore.js';
+    import qs from '../util/qs.js';
+
+    import './qp-context.js';
+    import qomp from '../qomp/qomp.js';
+
+    const context = {
+      store : createStore({count:11}),
+      action: {
+        inc(v) { context.store.data = {count: context.store.data.count+parseInt(v)} },
+        dec(v) { context.store.update(d=>({count:d.count-parseInt(v)})) }
+        // dec(v) { context.store._.dataObj.count++; context.store.update(),
+      },
+      computed: {
+        spanClass() {
+          return store.data.count % 2 ? '' : 'even'
+        }
+      }
+    };
+
+    qomp.defineAll({context});
+
+
+    // let dataInit = {
+    //   qpcount1:{count:1}, 
+    //   qpcount2:{count:2},
+    //   otherThings: true,
+    // }
+    // const store = createStore({...dataInit});
+    // qomp.defineAll({context:{store}});
+
+    // store.subscribe(st=>console.log('qpStore.html', st.data));
+    // store.subscribe(st=>qs('#reset span').innerText = st.data.qpcount1.count + '|' + st.data.qpcount2.count);
+    // qs('#reset').addEventListener('click', ()=>store.data = dataInit);
+        
+  </script>
+
+<h1>qupacha</h1>
+  <!-- <button id="reset">reset <span>?</span></button>
+  <qp-count subscribe="store.data.qpcount1" onchange="store.data = {qpcount1: event.detail}"></qp-count> -->
+  <qp-context 
+    subscribe="store.data"
+    update="span:count"
+    events=".btn1:click:action.inc:3; 
+      .btn2:click:action.dec:2"
+  >
+    <div>
+      <span>?</span>
+      <button class="btn1">BTN1</button>
+      <button class="btn2">BTN2</button>
+    </div>
+  </qp-context>
+
+  
+
+
+</body>
+</html>
