@@ -6,6 +6,7 @@
   <title>Document</title>
   <style>
     body { background-color: black; color:white; }
+    even { border: 1px solid red; }
   </style>
 </head>
 <body>
@@ -25,12 +26,12 @@
         // dec(v) { context.store._.dataObj.count++; context.store.update(),
       },
       computed: {
-        spanClass() {
-          return store.data.count % 2 ? '' : 'even'
+        get spanColor() {
+          return context.store.data.count % 2 ? 'red' : 'teal'
         }
       }
     };
-
+    context.store.subscribe(st=>console.log(st.data));
     qomp.defineAll({context});
 
 
@@ -51,19 +52,16 @@
 <h1>qupacha</h1>
   <!-- <button id="reset">reset <span>?</span></button>
   <qp-count subscribe="store.data.qpcount1" onchange="store.data = {qpcount1: event.detail}"></qp-count> -->
-  <qp-context 
-    subscribe="store.data"
-    update="span:count"
-    events=".btn1:click:action.inc:3; .btn2:click:action.dec:2"
-  >
+  <qp-context sub="store.data" upd=".count|props.count; .count|style.backgroundColor|computed.spanColor" evt=".btn1|click|action.inc|1; .btn2|click|action.dec|2">
     <div>
-      <span>?</span>
+      <span class="count"></span>
       <button class="btn1">BTN1</button>
       <button class="btn2">BTN2</button>
+      <span class="count2"></span>
     </div>
   </qp-context>
-
-  <qp-context events=".btn3:click:action.inc:5" >
+  
+  <qp-context events=".btn3|click|action.inc|5" >
     <button class="btn3">BTN3</button>
   </qp-context>
 

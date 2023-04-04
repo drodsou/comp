@@ -43,6 +43,7 @@ Done (other features)
 - svelte nested working well too
 - special attributes: subscribe, events, update
   - qp-context (!)
+- set(): props/computed, same syntax that upd attr, objPath, | instead of :
 
 
 # Narrative

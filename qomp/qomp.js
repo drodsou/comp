@@ -15,7 +15,20 @@ const createStyle = ({link,css}) => {
     links.forEach(l=>toHead('link', {rel:'stylesheet', href: l}));
   }
 }
-const objValue = (obj, path)=>path.reduce((prevObj, currKey) => prevObj[currKey], obj)  // ex: objValue(window,['document','body'])
+const objPath = (baseObj, path='')=>{
+  const pathArr =  (typeof path === 'string' ? path.split('.') : [...path])
+  const key = pathArr.pop();
+  const obj = pathArr.length === 0 ? baseObj : pathArr.reduce((prevObj, currKey) => prevObj[currKey], baseObj);
+  return { 
+    get: ()=>key ? obj[key] : obj, 
+    set:(v)=>{ 
+      if (!key) { throw new Error('objPath: cannot set value on empty path'); }
+      obj[key] = v;
+    }
+  }
+};
+const decStr2Arr = str=>str.split(';').map(a=>a.trim()).filter(a=>a.length)
+    .map(a=>a.replace(/(^\||\|$)/g,'').split('|').map(b=>b.trim()))
 const DEBUG = false;
 
 
@@ -32,7 +45,7 @@ export default function qomp (importMetaUrl, tagDef) {
     attr : [], props: {}, css : ()=>'', html : ()=>'', update: ()=>{}, events: ()=>[], do : {}, 
     style, renderClient, define  // see tagdef functions bellow
   }, tagDef);
-  tagObj.attr = tagObj.attr.concat(['subscribe','events','update']);
+  tagObj.attr = tagObj.attr.concat(['subscribe','sub','events','evt','update','upd']);
   // TODO: willUpdate, didUpdate, willMount, didMount, willUnmount, didUnmount
   // -- syntax sugar for SSR: qpTag('', props, children) instead of qpTag.renderServer('', props, children)
   const tag = Object.assign( (...args)=>renderServer.apply(tagObj, args), tagObj);
@@ -148,10 +161,15 @@ function define({styles=true, context=window}={}) {
           if (el.mem.propsStr === propsStr) return;
           el.mem.propsStr = propsStr;
           
-          ;(el.mem.updateAttr || tag.update)({el, props:el.mem.props, set:(qs,val)=>{
-            el.querySelector(qs).innerHTML = val;}
-          }); 
-
+          ;(el.mem.updateAttr || tag.update)({el, props:el.mem.props, set:str=>{
+            let sets = decStr2Arr(str).map(s=>s.length ===3 ? s : [s[0],'innerHTML',s[1]]);
+            sets.forEach( ([qs,target,value]) => {
+              console.log('sets', qs, target, value)
+              let valueObj = {props: el.mem.props, ...context };
+              objPath(el.querySelector(qs), target).set( objPath(valueObj, value).get() );
+            });
+          }});
+            // TODO: allow other than props, and other than innerHTML (modify set() fnction)
           el.dispatchEvent(new CustomEvent('change',{detail: {...el.mem.props}} ));  // works with onchange and Svelte on:change
         },
         elEvents : undefined
@@ -241,28 +259,22 @@ function define({styles=true, context=window}={}) {
     }
     attributeChangedCallback(name, oldValue, newValue) {
       const el = this;
-      if (name === 'subscribe') {
+      if (['subscribe','sub'].includes(name)) {
         nextTick(()=>{
           if (el.mem.unsubscribe) el.mem.unsubscribe();
-          let [store, ...path] = newValue.split('.');
+          const [store, ...path] = newValue.split('.');
           el.mem.unsubscribe = context[store].subscribe((st)=>{
-            el.props = objValue(st,path)
+            el.props = objPath(st, path).get()     
           });
         });
-      } else if (name === 'events') {
-        el.mem.elEvents = newValue.split(';').map(a=>a.split(':').map(b=>b.trim()))
-          .map(([qs,ev,fnPath, ...fnArgs])=>({qs,ev,fnPath,fnArgs}))
-          .map(({qs,ev,fnPath,fnArgs})=>{
-            const fnCtx = objValue(context,fnPath.split('.'));
+      } else if (['events','evt'].includes(name)) {
+        el.mem.elEvents = decStr2Arr(newValue).map(([qs,ev,fnPath, ...fnArgs])=>{      
+            const fnCtx = objPath(context,fnPath).get();
             const fn = ()=>fnCtx.apply(null,fnArgs)
             return [qs,ev,fn];
           });
-      } else if (name === 'update') {          
-        let sets = newValue.split(';').map(a=>a.split(':').map(b=>b.trim()))
-        el.mem.updateAttr = ({props, el, set}) => {
-          sets.forEach(([qs,prop])=>{ set(qs, props[prop]) });
-          // TODO: allow other than props, and other than innerHTML (modify set() fnction)
-        }
+      } else if (['update','upd'].includes(name)) {          
+        el.mem.updateAttr = ({set}) => set(newValue)
       } else {
         el.props = {[name] : newValue}    // setter that triggers update
       }
