@@ -44,11 +44,11 @@ Done (other features)
 - special attributes: subscribe, events, update
   - qp-context (!)
 - set(): props/computed, same syntax that upd attr, objPath, | instead of :
-
+- slots: if 1 slot, all children to it. If n slots 1 child to each slot
 
 # Narrative
 
-- start with basic customElement patter:
+- start with basic customElement pattern:
 
 ## if this lookss too complicated for the job:
 

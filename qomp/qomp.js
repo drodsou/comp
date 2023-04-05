@@ -116,19 +116,24 @@ function renderClient(el, props={}) {
 
   // -- preserve already rendered children before overwrting innerHTML
   let elTmp = document.createElement('div');
-  const elChildNodes = [...el.childNodes].filter(c=>c.textContent.trim());
-  elChildNodes.forEach(c=>elTmp.appendChild(c));   
+  ;[...el.childNodes].filter(c=>c.textContent.trim()).forEach(c=>elTmp.appendChild(c));   
 
   el.innerHTML = html;
-  for (let c of [...elTmp.childNodes]) { 
-    let elSlot = el.querySelector('slot');
-    if (elSlot) elSlot.parentNode.replaceChild(c, elSlot)
-    else {
-       console.warn( tag.tagName, el.id, ': more children than slots, or maybe bad closing tag',);
-       break;
-    }
-  };
+  let elSlots = [...el.querySelectorAll('slot')]
+  let tmpChilds = [...elTmp.childNodes]
+  // console.log('slots/childs', elSlots.length, tmpChilds.length);
 
+  if (elSlots.length > 1 && tmpChilds.length > elSlots.length) {
+    throw new Error(`qomp: ${tag.tagName} ${el.id} : more children than slots, or maybe bad closing tag`);
+  }
+
+  const replaceSlot = (slot, nodeArr) =>{
+    nodeArr.forEach(n=>n && slot.parentNode.insertBefore(n,slot));
+    slot.remove();
+  }
+  // -- if 1 slot, all children in; if n slots, each children to its slot
+  if (elSlots.length === 1) { replaceSlot(elSlots[0], tmpChilds) } 
+  else { elSlots.forEach( (slot,i)=> replaceSlot(slot, [tmpChilds[i]] ) ); }
 };
 
 
