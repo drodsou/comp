@@ -1,8 +1,6 @@
 // -- HELPERS
-const isServer = typeof window === 'undefined';
-const ctxGlobal = isServer ? global : window;
-const toBase64 = isServer ? (txt)=>Buffer.from(txt).toString('base64') : btoa; 
-const fromBase64 = isServer ? (b64)=>Buffer.from(b64, 'base64').toString('utf-8') : atob;
+const toBase64 = btoa ? btoa : (txt)=>Buffer.from(txt).toString('base64'); 
+const fromBase64 = atob ? atob : (b64)=>Buffer.from(b64, 'base64').toString('utf-8')
 const nextTick = (fn) => Promise.resolve().then(fn);
 const toHead = (t,attr,ch) => {
   const e = document.createElement(t);
@@ -34,7 +32,7 @@ const objPath = (baseObj, path='')=>{
 };
 const decStr2Arr = str=>str.split(';').map(a=>a.trim()).filter(a=>a.length)
     .map(a=>a.replace(/(^\||\|$)/g,'').split('|').map(b=>b.trim()))
-const DEBUG = true;
+const DEBUG = false;
 
 
 // ----------- QOMP, MAIN FUNCTION
@@ -62,9 +60,7 @@ export default function qomp (tagOrUrl, tagDef) {
   tagObj.attr = tagObj.attr.concat(['subscribe','sub','events','evt','update','upd']);
   // TODO: willUpdate, didUpdate, willMount, didMount, willUnmount, didUnmount
   // -- syntax sugar for SSR: qpTag('', props, children) instead of qpTag.renderServer('', props, children)
-
-  // const tag = Object.assign( (...args)=>renderServer.apply(tagObj, args), tagObj);
-  const tag = tagObj;
+  const tag = Object.assign( (...args)=>renderServer.apply(tagObj, args), tagObj);
   qomp.tags.push(tag);
   return tag;
 };
@@ -85,14 +81,12 @@ qomp.styleAll = () => {
 }
 
 // -- once for all tags, client only
-qomp.defineAll = ({styles=true, ctx=ctxGlobal}={}) => {
-  if (!isServer && styles) createStyle(qomp.styleAll());  
+qomp.defineAll = ({styles=true, ctx=window}={}) => {
+  if (styles) createStyle(qomp.styleAll());  
 
-  // TODO are we using this on server?
   qomp.tags.forEach(tag=>{
     tag.define({styles:false, ctx});   //  we already did all styles together
   });
-
 };
 
 // -- TAGDEF FUNCTIONS: style, render, define
@@ -115,22 +109,23 @@ function style() {
   return st;
 }
 
-
-
 function renderServer(attr='', props={}, slot='') {
-  const el = this;
-  el.mem.props = Object.assign(el.mem.props, props)
+  const tag = this;
+  props = Object.assign(tag.props, props);
+  tag.elCount++;   // here bc it's alweays called, server or client
   if (Array.isArray(slot)) slot = slot.join('\n');
   let html = 
-      `<${el.mem.tag.tagName} ${attr} data-props="${toBase64(JSON.stringify(props))}">`
-    + `  ${el.mem.tag.html({props: el.mem.props}).replace('<slot></slot>',slot)}`
-    + `</${el.mem.tag.tagName}>`;
+      `<${tag.tagName} ${attr} data-props="${toBase64(JSON.stringify(props))}">`
+    + `  ${tag.html({props}).replace('<slot></slot>',slot)}`
+    + `</${tag.tagName}>`;
   return html;
 };
 
-function renderClient(el) {
-  
-  let html = el.mem.tag.html({props: el.mem.props});
+function renderClient(el, props={}) {
+  const tag = this;
+  tag.elCount++;   // here bc it's alweays called, server or client
+
+  let html = tag.html({props});
   if (!html.includes('<slot>')) {
     el.innerHTML = html;
     return;
@@ -150,7 +145,7 @@ function renderClient(el) {
   // console.log('slots/childs', elSlots.length, tmpChilds.length);
 
   if (elSlots.length > 1 && tmpChilds.length > elSlots.length) {
-    throw new Error(`qomp: ${el.mem.tag.tagName} ${el.id} : more children than slots, or maybe bad closing tag`);
+    throw new Error(`qomp: ${tag.tagName} ${el.id} : more children than slots, or maybe bad closing tag`);
   }
 
   const replaceSlot = (slot, nodeArr) =>{
@@ -163,98 +158,16 @@ function renderClient(el) {
 };
 
 
-
-
-
-// -- ELEMENT INSTANCE DEFINITION
-
-/**
- * Common client server
-*/
-function elDefine (tag, el) {
-  tag.elCount++; 
-
-  el.mem = {
-    tag,
-    props: Object.assign( {}, tag.props /* mountProps */),
-    ready: false,
-    // -- instance update, wrapper of tag .update()
-    // TODO change tag update or this one for setstate or state or whatever, o
-    update(newProps = {}) {
-      Object.assign(el.mem.props, newProps);
-      DEBUG && console.log('qomp:', el.mem.tag.tagName, el.id, 'props updated', el.mem.props);
-      if (isServer || !el.mem.ready) return;
-
-      // -- client ready
-      const propsStr = JSON.stringify(el.mem.props)
-      if (el.mem.propsStr === propsStr) return;
-      el.mem.propsStr = propsStr;
-      
-      ;(el.mem.updateAttr || tag.update)({el, props:el.mem.props, set:str=>{
-        let sets = decStr2Arr(str).map(s=>s.length ===3 ? s : [s[0],'innerHTML',s[1]]);
-        sets.forEach( ([qs,targetPath,valuePath]) => {
-          let valueObj = {...el.mem, ctx};
-          let value = objPath(valueObj, valuePath).get()
-          if (typeof value === 'function') value = value()
-          objPath(el.querySelector(qs), targetPath).set( value );
-        });
-      }});
-        // TODO: allow other than props, and other than innerHTML (modify set() fnction)
-      el.dispatchEvent(new CustomEvent('change',{detail: {...el.mem.props}} ));  // works with onchange and Svelte on:change
-    },
-
-    elEvents : undefined,
-
-  }
-
-  el.do = {}
-  Object.entries(tag.do).forEach(([key,fn])=>{
-    el.do[key] = fn.bind(el.mem);
-  })
-
-  el.mem.computed = {};
-  el.computed = el.mem.computed;
-  Object.entries(tag.computed).forEach(([key,fn])=>{
-    el.mem.computed[key] = fn.bind(el.mem);   // TODO: bind(el) ??
-  })
-
-  Object.defineProperty(el, "props", {
-    get() { return {...el.mem.props} },
-    set(v) { 
-      Object.assign(el.mem.props, v) 
-      el.mem.update();
-    }
-  })
-
-  return el;
-
-}
-
-function define({styles=true, ctx=ctxGlobal}={}) {
-  const tag = this
-  if (isServer) return defineServer({tag, ctx})
-  return defineClient({tag, styles, ctx})
-}
-
-function defineServer({tag, ctx=ctxGlobal}) {
-  // -- ouside, each tag
-  DEBUG && console.log(tag.tagName, 'defineServer');
-  const el = function (...args) {
-    return renderServer.apply(el, args);
-  }
-
-  return elDefine(tag, el);
-}
-
-
 /**
  * web component definition: render html (+ insert styles) OR just hydrate (events + state + update)
  * once per instance (inside), once per tag (outside), 
  * client only
  */ 
-function defineClient({tag, styles=true, ctx=ctxGlobal}) {
+function define({styles=true, ctx=window}={}) {
   // -- ouside, each tag
+  const tag = this;
   DEBUG && console.log(tag.tagName, 'define');
+
   if (styles) createStyle(tag.style())
   
   customElements.define(tag.tagName, class extends HTMLElement {
@@ -263,8 +176,47 @@ function defineClient({tag, styles=true, ctx=ctxGlobal}) {
     constructor () {
       super();
       const el = this;
-      elDefine(tag, this);
       DEBUG && console.log(tag.tagName, el.id, 'constructor');
+
+      el.mem = {
+        props: Object.assign( {}, tag.props /* mountProps */),
+        ready: false,
+        // -- instance update, wrapper of tag .update()
+        update(newProps = {}) {
+          Object.assign(el.mem.props, newProps);
+          const propsStr = JSON.stringify(el.mem.props)
+          if (el.mem.propsStr === propsStr) return;
+          el.mem.propsStr = propsStr;
+          
+          ;(el.mem.updateAttr || tag.update)({el, props:el.mem.props, set:str=>{
+            let sets = decStr2Arr(str).map(s=>s.length ===3 ? s : [s[0],'innerHTML',s[1]]);
+            sets.forEach( ([qs,targetPath,valuePath]) => {
+              let valueObj = {...el.mem, ctx};
+              let value = objPath(valueObj, valuePath).get()
+              if (typeof value === 'function') value = value()
+              objPath(el.querySelector(qs), targetPath).set( value );
+            });
+          }});
+            // TODO: allow other than props, and other than innerHTML (modify set() fnction)
+          el.dispatchEvent(new CustomEvent('change',{detail: {...el.mem.props}} ));  // works with onchange and Svelte on:change
+        },
+        elEvents : undefined
+      }
+
+      el.do = {}
+      Object.entries(tag.do).forEach(([key,fn])=>{
+        el.do[key] = fn.bind(el.mem);
+      })
+
+      el.mem.computed = {};
+      el.computed = el.mem.computed;
+      Object.entries(tag.computed).forEach(([key,fn])=>{
+        el.mem.computed[key] = fn.bind(el.mem);   // TODO: bind(el) ??
+      })
+
+
+      // el.do = el.mem.do;
+      
     }
 
     /**
@@ -291,7 +243,7 @@ function defineClient({tag, styles=true, ctx=ctxGlobal}) {
         } else {
           // -- client render
           DEBUG && console.log(tag.tagName, el.id, 'client rendering');
-          tag.renderClient(el);
+          tag.renderClient(el, el.mem.props);
         }
         // -- events
         DEBUG && console.log(tag.tagName, el.id, 'addEventListener');
@@ -373,11 +325,5 @@ function defineClient({tag, styles=true, ctx=ctxGlobal}) {
     };  // -- attributeChangedCallback
 
   })  // -- customElements.define
-};  // defineClient()
-
-
-
-
-
-
+};  // tag .define()
 
