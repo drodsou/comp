@@ -30,7 +30,7 @@ export default qomp(import.meta.url, {
 
 // -- style
 
-function css(tag) {
+function css({tag}) {
   return /*css*/`
     ${tag} {
       display:inline-block;

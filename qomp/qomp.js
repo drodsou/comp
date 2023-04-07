@@ -8,7 +8,7 @@ const toHead = (t,attr,ch) => {
   if (ch) e.append(document.createTextNode(ch));
   document.head.append(e);
 }
-const createStyle = ({link,css}) => {
+const createStyle = ({link='',css=''} = {}) => {
   if (css.length >0) toHead('style', {type:'text/css'}, css);
   if (link.length > 0) {
     let links = typeof link  === 'string' ? [link] : link;
@@ -19,6 +19,9 @@ const objPath = (baseObj, path='')=>{
   const pathArr =  (typeof path === 'string' ? path.split('.') : [...path])
   const key = pathArr.pop();
   const obj = pathArr.length === 0 ? baseObj : pathArr.reduce((prevObj, currKey) => prevObj[currKey], baseObj);
+  if (!obj || (key && !(key in obj))) { 
+    throw new Error(`qomp: objPath: path "${path}" not found in object { ${Object.keys(baseObj).join(',')} }`) 
+  }
   return { 
     get: ()=>key ? obj[key] : obj, 
     set:(v)=>{ 
@@ -39,10 +42,19 @@ const DEBUG = false;
  * once per tag
  * client or server
 */
-export default function qomp (importMetaUrl, tagDef) {
+export default function qomp (tagOrUrl, tagDef) {
+  let tagName;
+  let importMetaUrl;
+  if (tagOrUrl.includes('/')) {
+    importMetaUrl = tagOrUrl;
+    tagName = importMetaUrl.split('/').pop().split('.').shift();
+  } else {
+    tagName = tagOrUrl;
+  }
+
   const tagObj = Object.assign({
-    elCount: 0, importMetaUrl, tagName: importMetaUrl.split('/').pop().split('.').shift(),
-    attr : [], props: {}, css : ()=>'', html : ()=>'', update: ()=>{}, events: ()=>[], do : {}, 
+    elCount: 0, importMetaUrl, tagName,
+    attr : [], props: {}, css : ()=>'', html : ()=>'', update: ()=>{}, events: ()=>[], do : {}, computed : {},
     style, renderClient, define  // see tagdef functions bellow
   }, tagDef);
   tagObj.attr = tagObj.attr.concat(['subscribe','sub','events','evt','update','upd']);
@@ -69,11 +81,11 @@ qomp.styleAll = () => {
 }
 
 // -- once for all tags, client only
-qomp.defineAll = ({styles=true, context=window}={}) => {
+qomp.defineAll = ({styles=true, ctx=window}={}) => {
   if (styles) createStyle(qomp.styleAll());  
 
   qomp.tags.forEach(tag=>{
-    tag.define({styles:false, context});   //  we already did all styles together
+    tag.define({styles:false, ctx});   //  we already did all styles together
   });
 };
 
@@ -88,8 +100,12 @@ function style() {
   const tag = this;
   const st = {} ;   // {link, css}
 
-  if (tag.css === true) st.link = tag.importMetaUrl.replace('.js','.css')
-  else st.css = tag.css(tag.tagName).trim(); 
+  if (tag.css === true) {
+    if (tag.importMetaUrl) st.link = tag.importMetaUrl.replace('.js','.css')
+    else console.warn('qomp', tag.tagName, ': defined css:true, but no importMetaUrl passed, so css link cannot be created');
+  } else {
+    st.css = tag.css({tag:tag.tagName}).trim(); 
+  }
   return st;
 }
 
@@ -116,7 +132,11 @@ function renderClient(el, props={}) {
 
   // -- preserve already rendered children before overwrting innerHTML
   let elTmp = document.createElement('div');
-  ;[...el.childNodes].filter(c=>c.textContent.trim()).forEach(c=>elTmp.appendChild(c));   
+
+  ;[...el.childNodes].filter(c=>{
+    if (c.nodeName === '#text' && c.textContent.trim().length === 0) return false;
+    return true;
+  }).forEach(c=>elTmp.appendChild(c));   
 
   el.innerHTML = html;
   let elSlots = [...el.querySelectorAll('slot')]
@@ -142,7 +162,7 @@ function renderClient(el, props={}) {
  * once per instance (inside), once per tag (outside), 
  * client only
  */ 
-function define({styles=true, context=window}={}) {
+function define({styles=true, ctx=window}={}) {
   // -- ouside, each tag
   const tag = this;
   DEBUG && console.log(tag.tagName, 'define');
@@ -161,17 +181,19 @@ function define({styles=true, context=window}={}) {
         props: Object.assign( {}, tag.props /* mountProps */),
         ready: false,
         // -- instance update, wrapper of tag .update()
-        update() {
+        update(newProps = {}) {
+          Object.assign(el.mem.props, newProps);
           const propsStr = JSON.stringify(el.mem.props)
           if (el.mem.propsStr === propsStr) return;
           el.mem.propsStr = propsStr;
           
           ;(el.mem.updateAttr || tag.update)({el, props:el.mem.props, set:str=>{
             let sets = decStr2Arr(str).map(s=>s.length ===3 ? s : [s[0],'innerHTML',s[1]]);
-            sets.forEach( ([qs,target,value]) => {
-              console.log('sets', qs, target, value)
-              let valueObj = {props: el.mem.props, ...context };
-              objPath(el.querySelector(qs), target).set( objPath(valueObj, value).get() );
+            sets.forEach( ([qs,targetPath,valuePath]) => {
+              let valueObj = {...el.mem, ctx};
+              let value = objPath(valueObj, valuePath).get()
+              if (typeof value === 'function') value = value()
+              objPath(el.querySelector(qs), targetPath).set( value );
             });
           }});
             // TODO: allow other than props, and other than innerHTML (modify set() fnction)
@@ -179,11 +201,18 @@ function define({styles=true, context=window}={}) {
         },
         elEvents : undefined
       }
+
       el.do = {}
       Object.entries(tag.do).forEach(([key,fn])=>{
-        // el.do[key] = fn.bind(el.mem);
         el.do[key] = fn.bind(el.mem);
       })
+
+      el.mem.computed = {};
+      el.computed = el.mem.computed;
+      Object.entries(tag.computed).forEach(([key,fn])=>{
+        el.mem.computed[key] = fn.bind(el.mem);   // TODO: bind(el) ??
+      })
+
 
       // el.do = el.mem.do;
       
@@ -264,23 +293,32 @@ function define({styles=true, context=window}={}) {
     }
     attributeChangedCallback(name, oldValue, newValue) {
       const el = this;
+
       if (['subscribe','sub'].includes(name)) {
         nextTick(()=>{
           if (el.mem.unsubscribe) el.mem.unsubscribe();
-          const [store, ...path] = newValue.split('.');
-          el.mem.unsubscribe = context[store].subscribe((st)=>{
+          const [_, store, ...path] = newValue.split('.');
+          el.mem.unsubscribe = ctx[store].subscribe((st)=>{
             el.props = objPath(st, path).get()     
           });
         });
-      } else if (['events','evt'].includes(name)) {
+      } 
+      
+
+      // TODO make this like update, so in tagDef can use same syntax than via attriubte
+      else if (['events','evt'].includes(name)) {
         el.mem.elEvents = decStr2Arr(newValue).map(([qs,ev,fnPath, ...fnArgs])=>{      
-            const fnCtx = objPath(context,fnPath).get();
-            const fn = ()=>fnCtx.apply(null,fnArgs)
+            const fnBase = objPath({...el.mem, ctx}, fnPath).get();
+            const fn = ()=>fnBase.apply(null,fnArgs)
             return [qs,ev,fn];
           });
-      } else if (['update','upd'].includes(name)) {          
+      } 
+      
+      else if (['update','upd'].includes(name)) {          
         el.mem.updateAttr = ({set}) => set(newValue)
-      } else {
+      } 
+      
+      else {
         el.props = {[name] : newValue}    // setter that triggers update
       }
     };  // -- attributeChangedCallback

@@ -18,41 +18,30 @@
     import './qp-context.js';
     import qomp from '../qomp/qomp.js';
 
-    const context = {
+    const ctx = {
       store : createStore({count:11}),
-      action: {
-        inc(v) { context.store.data = {count: context.store.data.count+parseInt(v)} },
-        dec(v) { context.store.update(d=>({count:d.count-parseInt(v)})) }
-        // dec(v) { context.store._.dataObj.count++; context.store.update(),
+      do: {
+        inc() { ctx.store.data = {count: ctx.store.data.count+1} },
+        dec() { ctx.store.update(d=>({count:d.count-1}) ) }
       },
       computed: {
         get spanColor() {
-          return context.store.data.count % 2 ? 'red' : 'teal'
+          return ctx.store.data.count % 2 ? 'red' : 'teal'
         }
       }
     };
-    context.store.subscribe(st=>console.log(st.data));
-    qomp.defineAll({context});
-
-
-    // let dataInit = {
-    //   qpcount1:{count:1}, 
-    //   qpcount2:{count:2},
-    //   otherThings: true,
-    // }
-    // const store = createStore({...dataInit});
-    // qomp.defineAll({context:{store}});
-
-    // store.subscribe(st=>console.log('qpStore.html', st.data));
-    // store.subscribe(st=>qs('#reset span').innerText = st.data.qpcount1.count + '|' + st.data.qpcount2.count);
-    // qs('#reset').addEventListener('click', ()=>store.data = dataInit);
+    ctx.store.subscribe(st=>console.log(st.data));
+    qomp.defineAll({ctx});
         
   </script>
 
 <h1>qupacha</h1>
   <!-- <button id="reset">reset <span>?</span></button>
   <qp-count subscribe="store.data.qpcount1" onchange="store.data = {qpcount1: event.detail}"></qp-count> -->
-  <qp-context sub="store.data" upd=".count|props.count; .count|style.backgroundColor|computed.spanColor" evt=".btn1|click|action.inc|1; .btn2|click|action.dec|2">
+  <qp-context sub="ctx.store.data" 
+    upd=".count|props.count; .count|style.backgroundColor|ctx.computed.spanColor" 
+    evt=".btn1|click|ctx.do.inc; .btn2|click|ctx.do.dec"
+  >
     <div>
       <span class="count"></span>
       <button class="btn1">BTN1</button>
@@ -61,7 +50,7 @@
     </div>
   </qp-context>
   
-  <qp-context events=".btn3|click|action.inc|5" >
+  <qp-context events=".btn3|click|ctx.do.inc" >
     <button class="btn3">BTN3</button>
   </qp-context>
 

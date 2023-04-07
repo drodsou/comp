@@ -45,6 +45,10 @@ Done (other features)
   - qp-context (!)
 - set(): props/computed, same syntax that upd attr, objPath, | instead of :
 - slots: if 1 slot, all children to it. If n slots 1 child to each slot
+- computed: normal funcions, not getters (impossible to .bind and move), update's 'set' takes care of it, autocalling them.
+- qp-spinner
+- context =>ctx
+- qp-state, and example qp-state-one fake fetch with spinner
 
 # Narrative
 
