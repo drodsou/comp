@@ -1,13 +1,14 @@
 import createStore from '/util/createStore.js';
 import qs from '/util/qs.js';
 
-import '/qp/qp-spin.js';
+// import '/qp/qp-spin.js';
+// import '/qp/qp-state.js';
 import '/qp/qp-state-one.js';
 import qomp from '/qomp/qomp.js';
 
-let qpUno = qomp('qp-uno', {
-  html :()=>`<div>uno:<slot></slot></div>`
-});
+// let qpUno = qomp('qp-uno', {
+//   html :()=>`<div>uno:<slot></slot></div>`
+// });
 qomp.defineAll();
 
 

@@ -1,51 +1,57 @@
 import qomp from '../qomp/qomp.js';
-import {STATA} from './qp-state.js';
+import {stataOption, STATA} from '../util/stata.js';
 
 export default qomp(import.meta.url, {
   props : {
     stata : STATA.ABSENT,
     data : ['initial 1','initual 2']
   },
-
-  computed : {
-    propsStata() { 
-      return {stata: this.props.stata} 
-    }, 
-  },
   
-  html: ({props}) => /*html*/`
-    <button>fetch</button>
-    <qp-state stata="${props.stata}">
-      <h1>results</h1>
-      <ul class="results">
-        ${htmlList({props})}
-      </ul>
-    </qp-state>
-  `,
- 
-  events : ({el}) =>[
-    ['button', 'click', el.do.fetch],
-  ],
+  computed: {
+    htmlStata () {
+      const {props} = this;
+      return stataOption(props.stata, {
+        [STATA.CRASH] : 'Custom error',
+        [STATA.DONE] : /*html*/`
+          <h1>results</h1>
+          <ul>
+            ${props.data.map(e=>'<li>'+e+'</li>').join('') }
+          </ul>
+        `
+      })
+    }
+  },
 
-  // -- client update
+  html: ({computed}) => console.log('cc',computed) || /*html*/`
+    <button>fetch</button><b>fetch</b>
+    <div>${computed.htmlStata()}</div>
+  `,
+  
+  // events : ({el, set}) =>
+  //   ['button', 'click', el.do.fetch ],
+  // ],
+
+  events : ({set}) => set(`
+    button | do.fetch;
+    b | mouseover | do.fetch;
+  `),
+
   update : async ({props, el, set}) => {
-    console.log('qp-state-one: updating');
-    set('qp-state|props|computed.propsStata'); 
-    // el.querySelector('qp-state').props = {stata: props.stata};
-    // el.querySelector('qp-state').props = el.computed.propsStata();
-    el.querySelector('.results').innerHTML = htmlList({props})
+    set('div | computed.htmlStata');
+    // el.querySelector('div').innerHTML = htmlStata({props});
   },
 
   do : {
     async fetch() {
       const {update, props} = this;
+      console.log('fetch');
       // -- fake fetch
-      update({stata:'booting'});
+      update({stata: STATA.BOOTING});
       await new Promise(r=>setTimeout(r,1000));
-      if (Math.random()<0.45) { 
-        update({stata:'crash'}); 
+      if (Math.random()>0.5) { 
+        update({stata: STATA.CRASH}); 
       } else {
-        update({data: ['uno','dos'], stata: 'done'});
+        update({data: ['uno','dos'], stata: STATA.DONE});
       }
     }
   }
@@ -54,9 +60,7 @@ export default qomp(import.meta.url, {
 
 // -- HELPERS
 
-function htmlList({props}) {
-  return props.data.map(e=>'<li>'+e+'</li>').join('');
-}
+
 
 
 // -- style
