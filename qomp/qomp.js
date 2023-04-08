@@ -122,12 +122,37 @@ function renderServer(attr='', props={}, slot='') {
   el.mem.props = Object.assign(el.mem.props, props)
   DEBUG && console.log('qomp: renderServer', el.mem.tag.tagName, el.id);
   if (Array.isArray(slot)) slot = slot.join('\n');
+
   let html = 
       `<${el.mem.tag.tagName} ${attr} data-props="${toBase64(JSON.stringify(props))}">`
     + `  ${el.mem.tag.html({...el.mem}).replace('<slot></slot>',slot)}`
     + `</${el.mem.tag.tagName}>`;
+
+  // -- run update attributes if exist
+  let re = new RegExp(/<(\w+)([^>]*upd=")([^"]*)("[^>]*>)(<\/\1>)/)
+  while (re.test(html)) {
+    html = html.replace(re, (m,tagName,p2,fnPath,p4,tagEnd) => {
+      console.log('P', tagName,'|',p2,'|',fnPath,'|',p4,'|',tagEnd)
+      let fn = objPath(el.mem, fnPath).get()
+      return '<'+tagName+p2+fn+p4+ fn() + tagEnd
+    })
+  };
+
   return html;
 };
+
+// function renderServer(attr='', props={}, slot='') {
+//   const el = this;
+//   el.mem.props = Object.assign(el.mem.props, props)
+//   DEBUG && console.log('qomp: renderServer', el.mem.tag.tagName, el.id);
+//   if (Array.isArray(slot)) slot = slot.join('\n');
+//   let html = 
+//       `<${el.mem.tag.tagName} ${attr} data-props="${toBase64(JSON.stringify(props))}">`
+//     + `  ${el.mem.tag.html({...el.mem}).replace('<slot></slot>',slot)}`
+//     + `</${el.mem.tag.tagName}>`;
+//   return html;
+// };
+
 
 function renderClient(el) {
   
@@ -203,11 +228,20 @@ function elDefine ({tag, el, ctx}) {
           sets.forEach( ([qs,targetPath,valuePath]) => {
             targetPath = targetPath || 'innerHTML'
             let value = objPath(el.mem, valuePath).get()
-            if (typeof value === 'function') value = value()
+            if (typeof value === 'function') value = value.apply(el.mem)
             objPath(el.querySelector(qs), targetPath).set( value );
           });
         }
       });
+      // -- auto upd:
+      el.querySelectorAll('[upd]').forEach(e=>{
+        let valuePath = e.getAttribute('upd');
+        let value = objPath(el.mem, valuePath).get()
+        if (typeof value === 'function') value = value.apply(el.mem);
+        e.innerHTML = value;
+      })
+
+
         // TODO: allow other than props, and other than innerHTML (modify set() fnction)
       el.dispatchEvent(new CustomEvent('change',{detail: {...el.mem.props}} ));  // works with onchange and Svelte on:change
     },
@@ -303,20 +337,32 @@ function defineClient({tag, styles=true, ctx=ctxGlobal}) {
           DEBUG && console.log(tag.tagName, el.id, 'client rendering');
           el.mem.render();  // renderClient
         }
-        // -- events
-        DEBUG && console.log(tag.tagName, el.id, 'addEventListener');
+        // -- events from tagDef or events attribute on qp-element
         el.mem.elEvents = (el.mem.eventsAttr || tag.events)({el, set: str=>{
           let sets = decStr2Arr(str).map(s=>s.length ===3 ? s : [s[0],'',s[1]])
-            .map( ([qs,ev,fnPath]) => {
+          .map( ([qs,ev,fnPath]) => {
             ev = ev || 'click'
             const fnBase = objPath(el.mem, fnPath).get();
-            const fn = ()=>fnBase.apply(null)
+            const fn = ()=>fnBase.apply(el.mem)
             return [qs,ev,fn];
           });
           return sets;
         }}); 
+        
+        // -- auto evt: events from evt on children
+        el.querySelectorAll('[evt]').forEach(e=>{
+          let fnPath = e.getAttribute('evt');
+          const fnBase = objPath(el.mem, fnPath).get();
+          const fn = ()=>fnBase.apply(el.mem)
+          el.mem.elEvents.push([e,'click',fn])
+        })
+        
+        
+        // -- attach events
+        DEBUG && console.log(tag.tagName, el.id, 'addEventListener');
         el.mem.elEvents.forEach(([qs,ev,fn])=>{
-          el.querySelector(qs).addEventListener(ev, fn);
+          let qsEl = (typeof qs === 'string') ? el.querySelector(qs) : qs;
+          qsEl.addEventListener(ev, fn);
         })
 
         // -- first auto update ??  (No, html() should have best practices of fiilling props, even thou is redundant with update
@@ -338,7 +384,10 @@ function defineClient({tag, styles=true, ctx=ctxGlobal}) {
       DEBUG && console.log(tag.tagName, el.id, 'disconnect');
 
       DEBUG && console.log(tag.tagName, el.id, 'removeEventListener');
-      el.mem.elEvents.forEach(([qs,ev,fn])=> el.querySelector(qs).removeEventListener(ev, fn));
+      el.mem.elEvents.forEach(([qs,ev,fn])=> {
+        let qsEl = (typeof qs === 'string') ? el.querySelector(qs) : qs;
+        qsEl.removeEventListener(ev, fn);
+      });
       el.mem.elEvents=[]
       if (el.mem.unsubscribe) el.mem.unsubscribe();
     } // -- disconnectedCallback
@@ -366,7 +415,7 @@ function defineClient({tag, styles=true, ctx=ctxGlobal}) {
         el.mem.eventsAttr = ({set}) => set(newValue)      
       } 
       
-      else if (['update','upd'].includes(name)) {          
+      else if (['update'].includes(name)) {          
         el.mem.updateAttr = ({set}) => set(newValue)
       } 
       

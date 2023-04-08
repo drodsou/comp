@@ -3,7 +3,7 @@ import {stataOption, STATA} from '../util/stata.js';
 
 export default qomp(import.meta.url, {
   props : {
-    stata : STATA.ABSENT,
+    stata : STATA.DONE,
     data : ['initial 1','initual 2']
   },
   
@@ -22,25 +22,37 @@ export default qomp(import.meta.url, {
     }
   },
 
-  html: ({computed}) => console.log('cc',computed) || /*html*/`
-    <button>fetch</button><b>fetch</b>
-    <div>${computed.htmlStata()}</div>
+  // html: ({computed}) => /*html*/`
+  //   <button>fetch</button> <b>fetch</b>
+  //   <div>${computed.htmlStata()}</div>
+  // `,
+
+
+  html: ({computed}) => /*html*/`
+    <button evt="do.fetch">fetch</button> <b>fetch</b>
+    <div upd="computed.htmlStata"></div>
   `,
+
+  
+
   
   // events : ({el, set}) =>
   //   ['button', 'click', el.do.fetch ],
   // ],
 
-  events : ({set}) => set(`
-    button | do.fetch;
-    b | mouseover | do.fetch;
-  `),
+  // events : ({set}) => set(`
+  //   button | do.fetch;
+  //   b | mouseover | do.fetch;
+  // `),
 
-  update : async ({props, el, set}) => {
-    set('div | computed.htmlStata');
-    // el.querySelector('div').innerHTML = htmlStata({props});
-  },
+  // update : async ({props, el, set}) => {
+  //   // set('div | computed.htmlStata');
+  //   // el.querySelector('div').innerHTML = htmlStata({props});
+  // },
 
+
+
+  
   do : {
     async fetch() {
       const {update, props} = this;

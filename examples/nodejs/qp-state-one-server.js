@@ -5,5 +5,5 @@ let qp1 = qpStateOne.define();
 
 // console.log(Object.keys(qpStateOne));
 
-await qp1.do.fetch();
+// await qp1.do.fetch();
 console.log(qp1())

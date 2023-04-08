@@ -49,6 +49,8 @@ Done (other features)
 - qp-spinner
 - context =>ctx
 - qp-state, and example qp-state-one fake fetch with spinner
+- upd auto & evt auto, declarative in html() template, works for server and client
+  - TODO: what happens with nested qp-s ??
 
 # Narrative
 
