@@ -1,6 +1,17 @@
+import objPath from '../util/objPath.js';
+import attr2arr from '../util/attr2arr.js';
+
 // -- HELPERS
 const isServer = typeof window === 'undefined';
 const ctxGlobal = isServer ? global : window;
+const DEBUG = (...args) =>{
+  let filters
+    // = '';  // show all
+    = 'upd';  // comment this for none
+  if (filters !== undefined) for (let filter of filters.split(',').map(f=>f.trim())) {
+    if (args.filter(a=>typeof a === 'string').join(' ').includes(filter)) console.info(...args);
+  }
+}
 const toBase64 = isServer ? (txt)=>Buffer.from(txt).toString('base64') : btoa; 
 const fromBase64 = isServer ? (b64)=>Buffer.from(b64, 'base64').toString('utf-8') : atob;
 const nextTick = (fn) => Promise.resolve().then(fn);
@@ -17,26 +28,12 @@ const createStyle = ({link='',css=''} = {}) => {
     links.forEach(l=>toHead('link', {rel:'stylesheet', href: l}));
   }
 }
-const objPath = (baseObj, path='')=>{
-  const pathArr =  (typeof path === 'string' ? path.split('.') : [...path])
-  const key = pathArr.pop();
-  const obj = pathArr.length === 0 ? baseObj : pathArr.reduce((prevObj, currKey) => prevObj[currKey], baseObj);
-  if (!obj || (key && !(key in obj))) { 
-    throw new Error(`qomp: objPath: path "${path}" not found in object { ${Object.keys(baseObj).join(',')} }`) 
-  }
-  return { 
-    get: ()=>key ? obj[key] : obj, 
-    set:(v)=>{ 
-      if (!key) { throw new Error('objPath: cannot set value on empty path'); }
-      obj[key] = v;
-    }
-  }
-};
-const decStr2Arr = str=>str.split(';').map(a=>a.trim()).filter(a=>a.length)
-    .map(a=>a.replace(/(^\||\|$)/g,'').split('|').map(b=>b.trim()))
-const DEBUG = true;
 
-
+const qpResponsible = window.qpResponsible = (ancestor, child) =>{
+  if (child === ancestor)  return true
+  if (child?.mem?.tag) return false;    // is of comp type but is not ancestor
+  return qpResponsible(child.parentNode, ancestor);
+}
 // ----------- QOMP, MAIN FUNCTION
 
 /**
@@ -120,7 +117,7 @@ function style() {
 function renderServer(attr='', props={}, slot='') {
   const el = this;
   el.mem.props = Object.assign(el.mem.props, props)
-  DEBUG && console.log('qomp: renderServer', el.mem.tag.tagName, el.id);
+  DEBUG('renderServer', el.mem.tag.tagName, el.id);
   if (Array.isArray(slot)) slot = slot.join('\n');
 
   let html = 
@@ -141,22 +138,9 @@ function renderServer(attr='', props={}, slot='') {
   return html;
 };
 
-// function renderServer(attr='', props={}, slot='') {
-//   const el = this;
-//   el.mem.props = Object.assign(el.mem.props, props)
-//   DEBUG && console.log('qomp: renderServer', el.mem.tag.tagName, el.id);
-//   if (Array.isArray(slot)) slot = slot.join('\n');
-//   let html = 
-//       `<${el.mem.tag.tagName} ${attr} data-props="${toBase64(JSON.stringify(props))}">`
-//     + `  ${el.mem.tag.html({...el.mem}).replace('<slot></slot>',slot)}`
-//     + `</${el.mem.tag.tagName}>`;
-//   return html;
-// };
-
 
 function renderClient(el) {
   
-  DEBUG && console.log('qomp: renderClient', el.mem.tag.tagName, el.id);
   let html = el.mem.tag.html({...el.mem});
   if (!html.includes('<slot>')) {
     el.innerHTML = html;
@@ -210,35 +194,41 @@ function elDefine ({tag, el, ctx}) {
     // TODO change tag update or this one for setstate or state or whatever, o
     update(newProps = {}) {
       Object.assign(el.mem.props, newProps);
-      DEBUG && console.log('qomp:', el.mem.tag.tagName, el.id, 'props updated', el.mem.props);
+      DEBUG(el.mem.tag.tagName, el.id, 'props updated', el.mem.props);
       if (isServer || !el.mem.ready) return;
 
       // -- client ready
+      DEBUG(el.mem.tag.tagName, el.id, 'updating client');
       const propsStr = JSON.stringify(el.mem.props)
       if (el.mem.propsStr === propsStr) return;
       el.mem.propsStr = propsStr;
       
       ;(el.mem.updateAttr || tag.update)({el, props:el.mem.props, 
-        render : ()=>{
-          if (el.mem.elEvents.length) console.warn('Using render() in update() with events is bad business, events wont be reattached, TODO:WHY?');
-          el.mem.render()
-        }, 
+        // render : ()=>{
+        //   if (el.mem.elEvents.length) console.warn('Using render() in update() with events is bad business, events wont be reattached, TODO:WHY?');
+        //   el.mem.render()
+        // }, 
         set: str=>{
-          let sets = decStr2Arr(str).map(s=>s.length ===3 ? s : [s[0],'',s[1]])
+          let sets = attr2arr(str).map(s=>s.length ===3 ? s : [s[0],'',s[1]])
           sets.forEach( ([qs,targetPath,valuePath]) => {
             targetPath = targetPath || 'innerHTML'
             let value = objPath(el.mem, valuePath).get()
             if (typeof value === 'function') value = value.apply(el.mem)
-            objPath(el.querySelector(qs), targetPath).set( value );
+            let qsEl =  el.querySelector(qs)
+            DEBUG(qsEl.tagName, qsEl.id, 'updating', targetPath, value);
+            objPath(qsEl, targetPath).set( value );
           });
         }
       });
       // -- auto upd:
-      el.querySelectorAll('[upd]').forEach(e=>{
-        let valuePath = e.getAttribute('upd');
+      // -- TODO: make list of this on first render, like events, so you dont have to check here if is direct children or not
+      el.querySelectorAll('[upd]').forEach(qsEl=>{
+        if (!qpResponsible(el, qsEl)) return;
+        let valuePath = qsEl.getAttribute('upd');
         let value = objPath(el.mem, valuePath).get()
         if (typeof value === 'function') value = value.apply(el.mem);
-        e.innerHTML = value;
+        DEBUG(qsEl.tagName, qsEl.id, 'upd-ing', valuePath, value);
+        qsEl.innerHTML = value;
       })
 
 
@@ -282,7 +272,7 @@ function define({styles=true, ctx=ctxGlobal}={}) {
 
 function defineServer({tag, ctx=ctxGlobal}) {
   // -- ouside, each tag
-  DEBUG && console.log(tag.tagName, 'defineServer');
+  DEBUG(tag.tagName, 'defineServer');
   const el = function (...args) {
     return renderServer.apply(el, args);
   }
@@ -298,7 +288,7 @@ function defineServer({tag, ctx=ctxGlobal}) {
  */ 
 function defineClient({tag, styles=true, ctx=ctxGlobal}) {
   // -- ouside, each tag
-  DEBUG && console.log(tag.tagName, 'defineClient');
+  DEBUG(tag.tagName, 'defineClient');
   if (styles) createStyle(tag.style())
   
   customElements.define(tag.tagName, class extends HTMLElement {
@@ -308,7 +298,7 @@ function defineClient({tag, styles=true, ctx=ctxGlobal}) {
       super();
       const el = this;
       elDefine({tag, el:this, ctx});
-      DEBUG && console.log(tag.tagName, el.id, 'constructor');
+      DEBUG(tag.tagName, el.id, 'constructor');
     }
 
     /**
@@ -318,10 +308,13 @@ function defineClient({tag, styles=true, ctx=ctxGlobal}) {
     connectedCallback() {
       const el = this;
       if (this.mem.ready) {
-        DEBUG && console.log(tag.tagName, el.id, 'skipping reconnect');
+        DEBUG(tag.tagName, el.id, 'skipping reconnect');
         return; 
       } 
-      DEBUG && console.log(tag.tagName, el.id, 'connected');
+      DEBUG(tag.tagName, el.id, 'connected');
+      
+      // important this be in current tick to prevent re-render in nested elements
+      el.mem.ready = true;  
       
       // -- this for Svelte compatibility that messes with innerHTML, removing it and appending it later
       // -- so we wait for "later" to get it
@@ -330,16 +323,21 @@ function defineClient({tag, styles=true, ctx=ctxGlobal}) {
         const dataProps = el.dataset.props;
         if (dataProps) {
           // -- ssr prerendered, just get stringified ssr props
-          DEBUG && console.log(tag.tagName, el.id, 'client hydrating');
+          DEBUG(tag.tagName, el.id, 'client hydrating');
           Object.assign(el.mem.props, JSON.parse(fromBase64(el.dataset.props)));
         } else {
           // -- client render
-          DEBUG && console.log(tag.tagName, el.id, 'client rendering');
+          DEBUG(tag.tagName, el.id, 'client rendering');
           el.mem.render();  // renderClient
         }
+
+        // -- first auto update ??  (No, html() should have best practices of fiilling props, even thou is redundant with update
+        el.mem.update();  // necesario para updateAttr, TODO: ver si se puede evitar
+
+
         // -- events from tagDef or events attribute on qp-element
         el.mem.elEvents = (el.mem.eventsAttr || tag.events)({el, set: str=>{
-          let sets = decStr2Arr(str).map(s=>s.length ===3 ? s : [s[0],'',s[1]])
+          let sets = attr2arr(str).map(s=>s.length ===3 ? s : [s[0],'',s[1]])
           .map( ([qs,ev,fnPath]) => {
             ev = ev || 'click'
             const fnBase = objPath(el.mem, fnPath).get();
@@ -359,15 +357,16 @@ function defineClient({tag, styles=true, ctx=ctxGlobal}) {
         
         
         // -- attach events
-        DEBUG && console.log(tag.tagName, el.id, 'addEventListener');
         el.mem.elEvents.forEach(([qs,ev,fn])=>{
+          DEBUG(tag.tagName, el.id, 'addEventListeners');
           let qsEl = (typeof qs === 'string') ? el.querySelector(qs) : qs;
+          DEBUG(qsEl.tagName, qsEl.id, 'addEventListener', ev);
           qsEl.addEventListener(ev, fn);
         })
 
-        // -- first auto update ??  (No, html() should have best practices of fiilling props, even thou is redundant with update
-        el.mem.ready = true;  // important this be in current tick (WHY??)
-        el.mem.update();  // necesario para updateAttr, TODO: ver si se puede evitar
+        
+
+        
 
       })
       
@@ -378,14 +377,15 @@ function defineClient({tag, styles=true, ctx=ctxGlobal}) {
     disconnectedCallback() {
       const el = this
       if (el.parentElement) {
-        DEBUG && console.log(tag.tagName, el.id, 'skipping temporal disconnect');
+        DEBUG(tag.tagName, el.id, 'skipping temporal disconnect');
         return;
       }
-      DEBUG && console.log(tag.tagName, el.id, 'disconnect');
+      DEBUG(tag.tagName, el.id, 'disconnect');
 
-      DEBUG && console.log(tag.tagName, el.id, 'removeEventListener');
+      DEBU(tag.tagName, el.id, 'removeEventListeners');
       el.mem.elEvents.forEach(([qs,ev,fn])=> {
         let qsEl = (typeof qs === 'string') ? el.querySelector(qs) : qs;
+        DEBUG(qsEl.tagName, qsEl.id, 'removeEventListener', ev);
         qsEl.removeEventListener(ev, fn);
       });
       el.mem.elEvents=[]

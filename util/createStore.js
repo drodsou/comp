@@ -1,3 +1,5 @@
+
+
 /**
 * Minimal vanilla javascript store with Svelte store, and usable in any other framework)
 * reactive .data prop, runs subscriptions on set

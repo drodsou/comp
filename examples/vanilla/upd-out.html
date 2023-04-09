@@ -11,22 +11,34 @@
 </head>
 <body>
   <script type="module">
-    import '/qp/qp-count-simple.js';
     import qomp from '/qomp/qomp.js';
-    qomp.defineAll({ctx:{
+    const qpBoxSimple = qomp('qp-box-simple',{
+      html : ()=>`box: <slot></slot>`,
+      css : ({tag})=> `${tag} { display: inline-block; padding: 10px; border:1px solid red; }`,
+    });
+
+    const ctx = {
+      
       dec() {
-      const {props,update} = this;
-      update({count: props.count - 1});
-    },
-    }});
+        ctx.store.count++;
+        ctx.update()
+      },
+      store: {
+        props: { count : 3}, 
+        subscribe(fn) {
+          ctx.update = ()=>fn(ctx.store.props);
+        }
+      }
+    }
+    qomp.defineAll({ctx});
+
   </script>
 
-  qp-count-simple
+  <h1>upd-out</h1>
 
-  <qp-count-simple id="out">
-    <qp-count-simple id="uno"></qp-count-simple>
-  </qp-count-simple>
-
+  <qp-box-simple subscribe="ctx.store.props">
+    <button evt="ctx.dec" upd="props.count"></button>
+  </qp-box-simple>
   
 </body>
 </html>

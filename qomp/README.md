@@ -3,6 +3,10 @@
 Forget all use qomp (defineCE2)
 
 TODO
+
+- qpResponsible
+- extended upd and evt other than innerhtml and click
+
 - examples ssr, vanilla, react, vue
 - ui components time (md min, more)
 - lifecycle willMount...
@@ -50,7 +54,9 @@ Done (other features)
 - context =>ctx
 - qp-state, and example qp-state-one fake fetch with spinner
 - upd auto & evt auto, declarative in html() template, works for server and client
-  - TODO: what happens with nested qp-s ??
+  - working also if nested (qpResponsible, TODO: define upd in render time, like events, to make this unnecessary
+
+
 
 # Narrative
 
