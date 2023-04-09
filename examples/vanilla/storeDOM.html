@@ -11,21 +11,21 @@
   </style>
 </head>
 <body>
-
   
-  <span class="st3">
-    <button class="st1" sub="calc.countHtml" evt="do.inc"></button>
-    <button class="st2" sub="data.count; calc.countColor|style.backgroundColor"
-      evt="do.inc|mouseenter" 
+  <span>
+    <button show="st1.countHtml" do="st1.inc"></button>
+    <button show="st2.count; st2.countColor|style.backgroundColor"
+      do="st2.inc|mouseenter" 
     ></button>
     
-    <span sub="data.count"></span>
+    <span show="st3.count"></span>
+
   </span>
 
   <script type="module">
 
     import defineStore from '/util/store.js';
-    import storeDOM from '/util/storeDOM.js';
+    import storeDOM from '/util/storeDOM2.js';
     import qs from '/util/qs.js';
 
     const CountStore = defineStore(st=>({
@@ -56,7 +56,6 @@
       }
     })).create({count:0}).listen([st1,st2], st=>st.do.sum);
 
-    // storeDOM([st1,'.ctx-st1'],[st2,'#two'], [st3,'#sum']);
     storeDOM({st1, st2, st3});
 
 
