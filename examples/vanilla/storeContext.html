@@ -12,15 +12,15 @@
 </head>
 <body>
 
+  <button id="one" stEv="do.inc" stUp="calc.countHtml"></button>
+  <button id="two" stEv="do.inc|mouseenter" 
+  stUp="data.count; calc.countColor|style.backgroundColor"
+  ></button>
   
-  <span class="st3">
-    <button class="st1" sub="calc.countHtml" evt="do.inc"></button>
-    <button class="st2" sub="data.count; calc.countColor|style.backgroundColor"
-      evt="do.inc|mouseenter" 
-    ></button>
-    
-    <span sub="data.count"></span>
+  <span id="sum">
+    <span stUp="data.count"></span>
   </span>
+
 
   <script type="module">
 
@@ -56,8 +56,7 @@
       }
     })).create({count:0}).listen([st1,st2], st=>st.do.sum);
 
-    // storeDOM([st1,'.ctx-st1'],[st2,'#two'], [st3,'#sum']);
-    storeDOM({st1, st2, st3});
+    storeDOM([st1,'#one'],[st2,'#two'], [st3,'#sum']);
 
 
     
