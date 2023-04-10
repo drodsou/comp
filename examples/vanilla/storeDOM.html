@@ -22,13 +22,19 @@
 
   </span>
 
+
+  <!-- javascript -->
+
   <script type="module">
 
-    import defineStore from '/util/store.js';
+    import store from '/util/store.js';
     import storeDOM from '/util/storeDOM.js';
     import qs from '/util/qs.js';
 
-    const CountStore = defineStore(st=>({
+    const st1 = store(st=>({
+      data : {
+        count:11,
+      },
       calc: {
         countHtml() {
           let color = st.data.count % 2 ? 'red' : 'teal';
@@ -47,18 +53,18 @@
       }, 
     }));
 
-    const st1 = CountStore.create({count:11})
-    const st2 = CountStore.create({count:22})
+    const st2 = st1.clone({count:22})
 
-    const st3 = defineStore(st=>({
+    const st3 = store(st=>({
+      data : {
+        count:0
+      },
       do : {
         sum() { st.update({count: st1.data.count + st2.data.count}) }
       }
-    })).create({count:0}).listen([st1,st2], st=>st.do.sum);
+    })).listen([st1,st2], 'sum');
 
     storeDOM({st1, st2, st3});
-
-
     
 
   </script>

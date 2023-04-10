@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    body { background-color: black; color:white;}
+    * {font-size: 30px;}
+    button { cursor: pointer; }
+    .result { border: 1px solid grey; padding: 10px;}
+  </style>
+</head>
+<body>
+  
+  <!-- html -->
+
+  <div>
+    <select do="st1.fetch|change">
+      <option value="">Select car:</option>
+      <option value="audi">Audi</option>
+      <option value="bmw">BMW</option>
+    </select>
+  </div>
+  <div show="st1.htmlStata" class="result"></div>
+
+
+  <!-- javascript -->
+
+  <script type="module">
+
+    import store from '/util/store.js';
+    import storeDOM from '/util/storeDOM.js';
+
+    import {stataOption, STATA} from '/util/stata.js';
+
+
+    const st1 = store(st=>({
+      data : {
+        stata: STATA.ABSENT,
+        selected: '',
+        rows : ['wrong1','wrong2'],
+      },
+      calc: {
+        htmlStata () {
+          return stataOption(st.data.stata, {
+            [STATA.ABSENT] : '(absent)',
+            // [STATA.BOOTING] : 'Fetching...',
+            [STATA.CRASH] : 'Custom error: ' + st.data.selected,
+            [STATA.DONE] : /*html*/`
+              <h1>results: ${st.data.selected}</h1>
+              <ul>
+                ${st.data.rows.map(e=>'<li>'+e+'</li>').join('') }
+              </ul>
+            `
+          })
+        },
+      },
+      do : {
+        async fetch() {
+          const el = this;
+          st.update({stata: STATA.BOOTING, selected: el.value});
+          await new Promise(r=>setTimeout(r,1000));
+          if (Math.random()>0.66) { 
+            st.update({stata: STATA.CRASH}); 
+          } else {
+            st.update({stata: STATA.DONE, rows: ['ok1','ok2'], });
+          }
+        }
+      }, 
+    }));
+
+    storeDOM({st1});
+    
+
+  </script>
+
+
+
+
+</body>
+</html>
