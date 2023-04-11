@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    body { background-color: black; color:white;}
+    * { font-size:60px;}
+  </style>
+</head>
+<body>
+    <span show="st1.buttonHtml">
+    </span>
+ 
+
+
+  <!-- javascript -->
+
+  <script type="module">
+
+    /*
+     *Test if element inserted tinamically with show/evt also get bound 
+    */
+
+    import store from '/util/store.js';
+    import storeDOM from '/util/storeDOM.js';
+    import qs from '/util/qs.js';
+
+    const st1 = store(st=>({
+      data : {
+        id: 'st1',
+        count:11,
+      },
+      calc: {
+        buttonHtml() {
+          return `<button show="st1.count" do="st1.inc"></button>`;
+        },
+
+      },
+      do : {
+        inc() { 
+          st.data.count += 1;
+          st.update()
+        },
+      }, 
+    }));
+
+    storeDOM({st1}, true);  // re-rech/add events on update, for new nodes
+    // st1.update();
+    
+
+  </script>
+
+
+
+
+</body>
+</html>

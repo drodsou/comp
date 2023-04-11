@@ -33,6 +33,7 @@
 
     const st1 = store(st=>({
       data : {
+        id : 'st1',
         count:11,
       },
       calc: {
@@ -47,20 +48,21 @@
       },
       do : {
         inc() { 
-          let count = st.data.count+1;
-          st.update({count})
+          st.data.count++;
+          st.update()
         },
       }, 
     }));
 
-    const st2 = st1.clone({count:22})
+    const st2 = st1.clone({id:'st2', count:22})
 
     const st3 = store(st=>({
       data : {
+        id: 'st3',
         count:0
       },
       do : {
-        sum() { st.update({count: st1.data.count + st2.data.count}) }
+        sum() { st.data.count = st1.data.count + st2.data.count; st.update(); }
       }
     })).listen([st1,st2], 'sum');
 

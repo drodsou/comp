@@ -11,15 +11,15 @@ import attr2arr from './attr2arr.js';
 const ATTR_EVT = 'do'
 const ATTR_SUB = 'show'
 const PROP_DONE = '_storeDOM_h3if7'
-const DEBUG = false;
+const DEBUG = true;
 
 /**
  * repeatOnChage: rechecks binding after each store change (if stores create and destroy elements (not optimal)
 */
 export default function storeDOM (stores, recheckOnChange=false) {
 
-  function check() {
-    console.log('storeDOM:check');
+  function bind() {
+    DEBUG && console.log('storeDOM:bind');
     // -- updates_ ex stUp="calc.countHtml|innerHTML"  (innerHTML is default, optional)
     document.body.querySelectorAll('*').forEach(el=>{
       if (el[PROP_DONE]) return;
@@ -34,25 +34,28 @@ export default function storeDOM (stores, recheckOnChange=false) {
       attr2arr(attr_sub).forEach(upArr=>{
         const [valuePath, targetPath='innerHTML'] = upArr;
         const [stKey, ...stPath] = valuePath.split('.');
+        DEBUG && console.log(ATTR_SUB, ':', valuePath, ' ==> ', targetPath);
         stores[stKey].subscribe(s=>{
           let value = objPath({...s.data, ...s.calc}, stPath).get();
           if (typeof value === 'function') value = value.apply(el);
           objPath(el,targetPath).set(value);
-        })
-        DEBUG && console.log(ATTR_SUB, ':', valuePath, ' ==> ', targetPath);
+        }, true)  // do not auto update on subscribe ?
       });
 
       attr2arr(attr_evt).forEach(evArr=>{
         const [fnPath, ev='click'] = evArr;
         const [stKey, ...stPath] = fnPath.split('.');
         const fn = objPath(stores[stKey].do, stPath).get();
-        el.addEventListener(ev,fn);
         DEBUG && console.log(ATTR_EVT, '  :',  fnPath, ' <== ', ev);
+        el.addEventListener(ev,fn);
       });
     });
-  }
 
-  check();
-  if (recheckOnChange) { Object.values(stores).forEach(s=>s.subscribe(check, false));  }
+  } // -- check
+
+  // -- on first update, necessary 
+  bind();
+  if (recheckOnChange) { Object.values(stores).forEach(s=>s.subscribe(bind, true));  }
+  // Object.values(stores).forEach(s=>s.update());
 
 }

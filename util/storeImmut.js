@@ -1,13 +1,16 @@
 /**
 * Minimal vanilla javascript store with Svelte store, and usable in any other framework)
 * reactive .data prop, runs subscriptions on set
+
+TODO use util/objAssignDeep on update
+
 */
-export default function define (storeFn=()=>{}) {
+export default function create (storeFn=()=>{}) {
   
-  function create (data = {}) {
-    // -- subscriptions
+  function _create (newData) {
+    
     const priv = {
-      dataObj : JSON.parse(JSON.stringify(data)),
+      dataObj : {},
       dataStrBefore : '',
       subs : new Set()
     }
@@ -18,6 +21,7 @@ export default function define (storeFn=()=>{}) {
       get data() { return JSON.parse(JSON.stringify(priv.dataObj)) },
       set data(d) { store.update(d) },
       update (d={}) {
+        console.log('store:update')
         Object.assign(priv.dataObj, d) 
         let dataStrNow = JSON.stringify(priv.dataObj);
         if (dataStrNow === priv.dataStrBefore) return;
@@ -49,16 +53,21 @@ export default function define (storeFn=()=>{}) {
         stArr.forEach(st=>st.subscribe(store.do[actionKey]));
         return store;
       }
+
     }
 
     let storeFnObj = storeFn(store);  // data, do, computed 
+    priv.dataObj = JSON.parse(JSON.stringify(newData ? newData : (storeFnObj.data || {}) ))
     store.calc = storeFnObj.calc;
     store.do = storeFnObj.do;
 
     return store;
   }
 
-  return {create}
+  let newStore = _create()
+  newStore.clone = _create;
+
+  return newStore;
 }
 
 
