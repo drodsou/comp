@@ -14,8 +14,7 @@
     <span show="st1.buttonHtml">
     </span>
  
-
-
+    
   <!-- javascript -->
 
   <script type="module">
@@ -26,7 +25,6 @@
 
     import store from '/util/store.js';
     import storeDOM from '/util/storeDOM.js';
-    import qs from '/util/qs.js';
 
     const st1 = store(st=>({
       data : {
@@ -35,7 +33,8 @@
       },
       calc: {
         buttonHtml() {
-          return `<button show="st1.count" do="st1.inc"></button>`;
+          // -- dynamic element with bindings
+          return `<button show="st1.count" do="st1.inc">btn</button>`;
         },
 
       },
@@ -47,8 +46,7 @@
       }, 
     }));
 
-    storeDOM({st1}, true);  // re-rech/add events on update, for new nodes
-    // st1.update();
+    storeDOM({st1});  
     
 
   </script>

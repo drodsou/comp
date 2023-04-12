@@ -2,60 +2,101 @@
   creates stores dom contexts, associates stores with dom nodes, and converts stEv and stUp attributes to eddEventListener and subscriptions
   allows nested contexts without messing things
 
+  before: made 1 subscripton to store for each SUB in an element. Problem: not able to track deleted elementns
+  now: just 1 subscription for storeDOM, which keeps a Map of nodes (els), checking if they are still in the
+  DOM on each update.
+
   TODO: option to subscribe to the stores and recheck EVT, SUB on each store change
 */
 
 import objPath from './objPath.js';
 import attr2arr from './attr2arr.js';
+import nextTick from './nextTick.js';
 
 const ATTR_EVT = 'do'
 const ATTR_SUB = 'show'
-const PROP_DONE = '_storeDOM_h3if7'
 const DEBUG = true;
 
 /**
  * repeatOnChage: rechecks binding after each store change (if stores create and destroy elements (not optimal)
 */
-export default function storeDOM (stores, recheckOnChange=false) {
+export default function storeDOM (stores) {
 
-  function bind() {
-    DEBUG && console.log('storeDOM:bind');
-    // -- updates_ ex stUp="calc.countHtml|innerHTML"  (innerHTML is default, optional)
-    document.body.querySelectorAll('*').forEach(el=>{
-      if (el[PROP_DONE]) return;
-      el[PROP_DONE] = true;
-      
-      let attr_sub = el.getAttribute(ATTR_SUB);
-      let attr_evt = el.getAttribute(ATTR_EVT);
-      if (!attr_sub && !attr_evt) return;
+  const els = new Map();
 
-      DEBUG && console.log('\n---', el.tagName, el.id);
+  function storeDOMUpdate() {
 
-      attr2arr(attr_sub).forEach(upArr=>{
-        const [valuePath, targetPath='innerHTML'] = upArr;
-        const [stKey, ...stPath] = valuePath.split('.');
-        DEBUG && console.log(ATTR_SUB, ':', valuePath, ' ==> ', targetPath);
-        stores[stKey].subscribe(s=>{
+    DEBUG && console.log('\nstoreDOM:update');
+    
+    // -- clean deleted elements, and set existing to pending update
+    for (let [el] of els) {
+      DEBUG && console.log('storeDOM:pending update', el.tagName, el.id);
+      els.set(el,'pend');
+    }
+    
+    // DEBUG && console.log('\n---storeDOM:', el.tagName, el.id);
+
+    let pending = true;
+
+    while (pending) {
+      DEBUG && console.log('storeDOM:scan new elements');
+      // -- scan new elements, mark as pending update, addEventlisteners
+      document.body.querySelectorAll('['+ATTR_SUB+'],['+ATTR_EVT+']').forEach(el=>{
+        if (els.get(el)) {
+          DEBUG && console.log('storeDOM: not adding element:', el.tagName, el.id);
+          return;
+        } 
+        DEBUG && console.log('storeDOM: adding element', el.tagName, el.id);
+        els.set(el,'pend');
+
+        // -- events
+        let attr_evt = el.getAttribute(ATTR_EVT);
+        attr2arr(attr_evt).forEach(evArr=>{
+          const [fnPath, ev='click'] = evArr;
+          const [stKey, ...stPath] = fnPath.split('.');
+          let fn = objPath(stores[stKey].do, stPath).get();
+          DEBUG && console.log('storeDOM:', ATTR_EVT, '(addEvt)  :',  fnPath, ' <== ', ev);
+          el.addEventListener(ev,(...args)=>{
+            DEBUG && console.log('storeDOM:',ATTR_EVT, '(do) :', fnPath, ' <== ', ev);
+            fn.apply(el, args);
+          });
+        });
+      });
+
+      // -- updates: update all pending
+      pending = false;
+      for (let [el, elFlag] of els) {
+        if (!el.parentNode) {
+          DEBUG && console.log('storeDOM:delete node', el.tagName, el.id);
+          els.delete(el) 
+          continue;
+        } 
+        if (elFlag === 'done') {
+          DEBUG && console.log('storeDOM: not updating', el.tagName, el.id);
+          continue;
+        }
+
+        els.set(el,'done');
+        let attr_sub = el.getAttribute(ATTR_SUB);
+        attr2arr(attr_sub).forEach(upArr=>{
+          const [valuePath, targetPath='innerHTML'] = upArr;
+          const [stKey, ...stPath] = valuePath.split('.');
+          const s = stores[stKey]
           let value = objPath({...s.data, ...s.calc}, stPath).get();
           if (typeof value === 'function') value = value.apply(el);
+          DEBUG && console.log('storeDOM', ATTR_SUB, '(updating) ', el.tagName, el.id, ':', value, ' ==> ', targetPath);
           objPath(el,targetPath).set(value);
-        }, true)  // do not auto update on subscribe ?
-      });
+          if (value.includes && (value.includes(' '+ATTR_SUB+'="') || value.includes(' '+ATTR_EVT+'="'))  )  {
+            pending = true;
+            DEBUG && console.log('storeDOM: dynamic element has bindings, mark for rescan');
+          }
+        });
+      }
 
-      attr2arr(attr_evt).forEach(evArr=>{
-        const [fnPath, ev='click'] = evArr;
-        const [stKey, ...stPath] = fnPath.split('.');
-        const fn = objPath(stores[stKey].do, stPath).get();
-        DEBUG && console.log(ATTR_EVT, '  :',  fnPath, ' <== ', ev);
-        el.addEventListener(ev,fn);
-      });
-    });
+    } // -- while pending
+  }
 
-  } // -- check
-
-  // -- on first update, necessary 
-  bind();
-  if (recheckOnChange) { Object.values(stores).forEach(s=>s.subscribe(bind, true));  }
-  // Object.values(stores).forEach(s=>s.update());
+  Object.values(stores).forEach(st=>st.subscribe(storeDOMUpdate));
 
 }
+

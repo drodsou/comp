@@ -11,63 +11,33 @@
   </style>
 </head>
 <body>
-  
-  <span>
-    <button show="st1.countHtml" do="st1.inc"></button>
-    <button show="st2.count; st2.countColor|style.backgroundColor"
-      do="st2.inc|mouseenter" 
-    ></button>
-    
-    <span show="st3.count"></span>
+   
+  <button id="uno" show="st1.counter.count" do="st1.inc"></button>
+  <ce-badge show="st1.counter|props"></ce-badge>
 
-  </span>
 
 
   <!-- javascript -->
 
   <script type="module">
 
+    /*
+     *Test if element inserted tinamically with show/evt also get bound 
+    */
+
     import store from '/util/store.js';
     import storeDOM from '/util/storeDOM.js';
-    import qs from '/util/qs.js';
+    import '/ce/ce-badge.js';
 
     const st1 = store(st=>({
       data : {
-        id : 'st1',
-        count:11,
-      },
-      calc: {
-        countHtml() {
-          let color = st.data.count % 2 ? 'red' : 'teal';
-          return `<span style="color:${color};">${st.data.count}</span>`;
-        },
-        countColor() {
-          let color = st.data.count % 2 ? 'red' : 'teal';
-          return color;
-        }
+        counter : {  count:11 }
       },
       do : {
-        inc() { 
-          st.data.count++;
-          st.update()
-        },
-      }, 
-    }));
-
-    const st2 = st1.clone({id:'st2', count:22})
-
-    const st3 = store(st=>({
-      data : {
-        id: 'st3',
-        count:0
-      },
-      do : {
-        sum() { st.data.count = st1.data.count + st2.data.count; st.update(); }
+        inc() {st.data.counter.count++; st.update(); }
       }
-    })).listen([st1,st2], 'sum');
-
-    storeDOM({st1, st2, st3});
-    
+    }));
+    storeDOM({st1});
 
   </script>
 

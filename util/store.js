@@ -21,12 +21,12 @@ export default function create (storeFn=()=>{}) {
       // -- basic
       _ : priv,
       data:{},
-      update () {
+      update (force=false) {
         DEBUG && console.log('store:update', store.data.id)
         let dataStrNow = JSON.stringify(store.data);
-        if (dataStrNow === priv.dataStrBefore) return;
+        if (!force && dataStrNow === priv.dataStrBefore) return;
         priv.dataStrBefore = dataStrNow;
-        DEBUG && console.log('store:runSub all');
+        DEBUG && console.log('store:runSub all', priv.subs.size);
         priv.subs.forEach(sub=>{
           sub(store);
         })
