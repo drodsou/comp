@@ -12,15 +12,30 @@
 import objPath from './objPath.js';
 import attr2arr from './attr2arr.js';
 import nextTick from './nextTick.js';
+import createStyle from './createStyle.js';
 
 const ATTR_EVT = 'do'
 const ATTR_SUB = 'show'
-const DEBUG = true;
+const DEBUG = false;
+
+const specialTarget = {
+  $visible (value, arg) {
+    const el = this;
+    if (value !== arg) el.classList.add('storeDOM-hidden');
+    else el.classList.remove('storeDOM-hidden');
+  } 
+}
 
 /**
  * repeatOnChage: rechecks binding after each store change (if stores create and destroy elements (not optimal)
 */
 export default function storeDOM (stores) {
+
+  createStyle({css:/*css*/`
+    .storeDOM-hidden {
+      display: none;
+    }
+  `});
 
   const els = new Map();
 
@@ -79,16 +94,20 @@ export default function storeDOM (stores) {
         els.set(el,'done');
         let attr_sub = el.getAttribute(ATTR_SUB);
         attr2arr(attr_sub).forEach(upArr=>{
-          const [valuePath, targetPath='innerHTML'] = upArr;
+          const [valuePath, targetPath='innerHTML', ...args] = upArr;
           const [stKey, ...stPath] = valuePath.split('.');
           const s = stores[stKey]
           let value = objPath({...s.data, ...s.calc}, stPath).get();
           if (typeof value === 'function') value = value.apply(el);
           DEBUG && console.log('storeDOM', ATTR_SUB, '(updating) ', el.tagName, el.id, ':', value, ' ==> ', targetPath);
-          objPath(el,targetPath).set(value);
-          if (value.includes && (value.includes(' '+ATTR_SUB+'="') || value.includes(' '+ATTR_EVT+'="'))  )  {
-            pending = true;
-            DEBUG && console.log('storeDOM: dynamic element has bindings, mark for rescan');
+          if (targetPath in specialTarget) {
+            specialTarget[targetPath].apply(el,[value, ...args]);
+          } else {
+            objPath(el,targetPath).set(value);
+            if (value.includes && (value.includes(' '+ATTR_SUB+'="') || value.includes(' '+ATTR_EVT+'="'))  )  {
+              pending = true;
+              DEBUG && console.log('storeDOM: dynamic element has bindings, mark for rescan');
+            }
           }
         });
       }

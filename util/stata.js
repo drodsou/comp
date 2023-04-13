@@ -40,3 +40,14 @@ function defaultSpinner() {
     </span>
   `;
 }
+
+
+/**
+ * updates .stata and .row of a util/store.js on result of promise returnin {error, rows}
+*/
+export async function stataFetch2Store(st, stKey, prom) {
+  st.update(stKey, { stata:STATA.BOOTING, rows:[]} )
+  let res = await prom;
+  if (res.error) st.update(stKey, { stata:STATA.CRASH, rows:[]} )
+  else st.update(stKey, { stata:STATA.DONE, rows:res.rows} )
+}

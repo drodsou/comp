@@ -3,7 +3,7 @@ export default function objPath (baseObj, path='') {
   const key = pathArr.pop();
   const obj = pathArr.length === 0 ? baseObj : pathArr.reduce((prevObj, currKey) => prevObj[currKey], baseObj);
   if (!obj || (key && !(key in obj))) { 
-    throw new Error(`qomp: objPath: path "${path}" not found in object { ${Object.keys(baseObj).join(',')} }`) 
+    throw new Error(`objPath: path "${path}" not found in object { ${Object.keys(baseObj).join(',')} }`) 
   }
   return { 
     get: ()=>key ? obj[key] : obj, 

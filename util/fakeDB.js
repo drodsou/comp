@@ -23,7 +23,7 @@ const data = {
 async function query(table) {
   await new Promise(r=>setTimeout(r,800));
   console.log('table', table)
-  if (Math.random() > 0.66) return {error: true, rows: []}
+  if (Math.random() > 0.90) return {error: true, rows: []}
   else return {error: false, rows: [...data[table]]}
 }
 

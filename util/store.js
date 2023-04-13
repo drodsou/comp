@@ -6,7 +6,7 @@ store.data plain object instead of getter,setter, as it forces to use deepMerge 
 and .update is more verbose:  "d = st.data; d.one.two++; update(d)" OR "update(d=>({one:{two:d.one.two+1}}))"
 this way: st.data.one.two++; st.update(); , no need for deep merges: leave this for  immutable more comple version of the store (Really needed or just immu-hype?)
 */
-const DEBUG = true;
+const DEBUG = false;
 
 export default function create (storeFn=()=>{}) {
   
@@ -21,10 +21,20 @@ export default function create (storeFn=()=>{}) {
       // -- basic
       _ : priv,
       data:{},
-      update (force=false) {
-        DEBUG && console.log('store:update', store.data.id)
+      update (dPath,dNew) {
+        DEBUG && console.log('store:update', store.data.id, dPath, dNew)
+
+        // -- optional (path, obj), partial semideep update
+        if (dPath) try {
+          if (!dNew) { dNew = dPath; dPath = ''; }
+          let d = !dPath ? store.data : dPath.split('.').reduce((p,c)=>p[c],store.data);
+          Object.assign(d, dNew);
+        } catch (e) {
+          throw new Error(`store: problem finding path '${dPath}' in store {${Object.keys(store.data).join()}...}`); 
+        }
+
         let dataStrNow = JSON.stringify(store.data);
-        if (!force && dataStrNow === priv.dataStrBefore) return;
+        if (dataStrNow === priv.dataStrBefore) return;
         priv.dataStrBefore = dataStrNow;
         DEBUG && console.log('store:runSub all', priv.subs.size);
         priv.subs.forEach(sub=>{

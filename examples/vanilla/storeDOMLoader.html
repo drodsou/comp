@@ -60,12 +60,13 @@
       do : {
         async fetch() {
           const el = this;
-          st.update({stata: STATA.BOOTING, selected: el.value});
+          const d = st.data;
+          st.update({stata:STATA.BOOTING, selected:el.value});
           await new Promise(r=>setTimeout(r,1000));
           if (Math.random()>0.66) { 
-            st.update({stata: STATA.CRASH}); 
+            st.update({stata:STATA.CRASH}); 
           } else {
-            st.update({stata: STATA.DONE, rows: ['ok1','ok2'], });
+            st.update({stata:STATA.DONE, rows:['ok1','ok2']});
           }
         }
       }, 

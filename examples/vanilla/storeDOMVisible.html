@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    body { background-color: black; color:white;}
+    * { font-size:60px;}
+  </style>
+</head>
+<body>
+   
+  <button show="st1.stata" do="st1.toggle"></button>
+  <div show="st1.stata|$visible|booting">It is booting</div>
+  <div show="st1.stata|$visible|done">It is done</div>
+
+
+  <!-- javascript -->
+
+  <script type="module">
+
+    /*
+     *Test if element inserted tinamically with show/evt also get bound 
+    */
+
+    import store from '/util/store.js';
+    import storeDOM from '/util/storeDOM.js';
+
+    const st1 = store(st=>({
+      data : {
+        stata: 'booting'
+      },
+      do : {
+        toggle() { st.update({stata: st.data.stata === 'booting' ? 'done' : 'booting'}); }
+      }
+    }));
+    storeDOM({st1});
+
+  </script>
+
+
+
+
+</body>
+</html>
