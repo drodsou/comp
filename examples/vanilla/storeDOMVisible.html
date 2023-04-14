@@ -8,17 +8,28 @@
   <style>
     body { background-color: black; color:white;}
     * { font-size:60px;}
+    #penacho { border: 1px solid red; display: inline-block;}
+
+    #container {visibility: hidden; }
   </style>
 </head>
 <body>
-   
-  <button show="st1.stata" do="st1.toggle"></button>
-  <div show="st1.stata|$visible|booting">It is booting</div>
-  <div show="st1.stata|$visible|done">It is done</div>
+  <div id="container">
+    <button show="st1.stata" do="st1.toggle"></button>
+    <!-- toggle class using "specialTarget" $visible-->
+    <div show="st1.stata|$visible|booting">It is booting</div>
+    <div show="st1.stata|$visible|done">It is done</div>
+    
+    <hr>
+    <!-- toggle class using "specialTarget" $addClass -->
+    <div show="st1.stata|$addClass|booting|storeDOM-hidden">specialTarget $addClass</div>
+    <hr>
+    <!-- toggle class using custom client "calc" (view), returnin undefined  -->
+    <div show="st1.visi||booting">custom calc</div>
+  </div>
 
 
   <!-- javascript -->
-
   <script type="module">
 
     /*
@@ -34,9 +45,16 @@
       },
       do : {
         toggle() { st.update({stata: st.data.stata === 'booting' ? 'done' : 'booting'}); }
+      },
+      calc : {
+        visi(arg) {
+          this.classList[ st.data.stata === arg ? 'add' : 'remove']('storeDOM-hidden')
+        }
       }
     }));
     storeDOM({st1});
+    Promise.resolve().then(()=>document.querySelector('#container').style.visibility = 'visible');
+    
 
   </script>
 

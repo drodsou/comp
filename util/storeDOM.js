@@ -21,9 +21,20 @@ const DEBUG = false;
 const specialTarget = {
   $visible (value, arg) {
     const el = this;
-    if (value !== arg) el.classList.add('storeDOM-hidden');
-    else el.classList.remove('storeDOM-hidden');
-  } 
+    el.classList[ value === arg ? 'remove' : 'add']('storeDOM-hidden')
+  },
+  $hidden (value, arg) {
+    const el = this;
+    el.classList[ value === arg ? 'add' : 'remove']('storeDOM-hidden')
+  },
+  $removeClass (value, tValue,tClass) {
+    const el = this;
+    el.classList[ value === tValue ? 'remove' : 'add'](tClass)
+  },
+  $addClass (value, tValue,tClass ) {
+    const el = this;
+    el.classList[ value === tValue ? 'add' : 'remove'](tClass)
+  },
 }
 
 /**
@@ -98,11 +109,11 @@ export default function storeDOM (stores) {
           const [stKey, ...stPath] = valuePath.split('.');
           const s = stores[stKey]
           let value = objPath({...s.data, ...s.calc}, stPath).get();
-          if (typeof value === 'function') value = value.apply(el);
+          if (typeof value === 'function') value = value.apply(el,args);
           DEBUG && console.log('storeDOM', ATTR_SUB, '(updating) ', el.tagName, el.id, ':', value, ' ==> ', targetPath);
           if (targetPath in specialTarget) {
             specialTarget[targetPath].apply(el,[value, ...args]);
-          } else {
+          } else if (value !== undefined) {
             objPath(el,targetPath).set(value);
             if (value.includes && (value.includes(' '+ATTR_SUB+'="') || value.includes(' '+ATTR_EVT+'="'))  )  {
               pending = true;
