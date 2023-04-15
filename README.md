@@ -8,8 +8,13 @@ see qomp readme in qomp/
 
 # architecture
 
-Model => View (plain data or calc) => Action <==> Service (+Business logic, +storage/infra) 
-                                              => Model
+really:
+ - Store: Model and Calc | Action | Subscriptions
+ - View (html), may be update by subscritptions, listen events that trigger store Actions
+   - StoreDom (viewcontroller, one subscription to all view bindings)
+ - Services (consulted by actions before updating model) business logic, infra, etc           
+ 
+                                     
 
 # CHANGELOG
 
