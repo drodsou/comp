@@ -55,9 +55,9 @@ export default function storeDOM (stores) {
     DEBUG && console.log('\nstoreDOM:update');
     
     // -- clean deleted elements, and set existing to pending update
-    for (let [el, elValue] of els) {
+    for (let [el] of els) {
       DEBUG && console.log('storeDOM:pending update', el.tagName, el.id);
-      elValue.renderPend = true;
+      els.set(el,'pend');
     }
     
     // DEBUG && console.log('\n---storeDOM:', el.tagName, el.id);
@@ -73,7 +73,7 @@ export default function storeDOM (stores) {
           return;
         } 
         DEBUG && console.log('storeDOM: adding element', el.tagName, el.id);
-        els.set(el,{renderPend:true, renderLast:[]});
+        els.set(el,'pend');
 
         // -- events
         let attr_evt = el.getAttribute(ATTR_EVT);
@@ -83,50 +83,37 @@ export default function storeDOM (stores) {
           let fn = objPath(stores[stKey].do, stPath).get();
           DEBUG && console.log('storeDOM:', ATTR_EVT, '(addEvt)  :',  fnPath, ' <== ', ev, el.tagName, el.id);
           el.addEventListener(ev,(...args)=>{
-            DEBUG && console.log('\nstoreDOM:',ATTR_EVT, '(do) :', fnPath, ' <== ', ev, el.tagName, el.id);
+            DEBUG && console.log('storeDOM:',ATTR_EVT, '(do) :', fnPath, ' <== ', ev, el.tagName, el.id);
             fn.apply(el, args);
           });
         });
       });
 
       // -- updates: update all pending
-      pending = false;  // --dynamic elements with bindings?
-      for (let [el, elValue] of els) {
+      pending = false;
+      for (let [el, elFlag] of els) {
         if (!el.parentNode) {
           DEBUG && console.log('storeDOM:delete node', el.tagName, el.id);
           els.delete(el) 
           continue;
         } 
-        if (elValue.renderPend === false) {
+        if (elFlag === 'done') {
           DEBUG && console.log('storeDOM: not updating', el.tagName, el.id);
           continue;
         }
 
-        elValue.renderPend = false
+        els.set(el,'done');
         let attr_sub = el.getAttribute(ATTR_SUB);
-        attr2arr(attr_sub).forEach((upArr,upIndex)=>{
-          // -- get next value of each update (;)
+        attr2arr(attr_sub).forEach(upArr=>{
           const [valuePath, targetPath='innerHTML', ...args] = upArr;
           const [stKey, ...stPath] = valuePath.split('.');
           const s = stores[stKey]
           let value = objPath({...s.data, ...s.calc}, stPath).get();
           if (typeof value === 'function') value = value.apply(el,args);
-          
-          // -- if going to render the same value as last time, skip
-          let newUpd = valuePath+targetPath+args.join('')+JSON.stringify(value);
-          if (elValue.renderLast[upIndex] === newUpd) {
-            DEBUG && console.log('storeDOM', ATTR_SUB, '(skip updating the same) ', el.tagName, el.id, ':', value, ' ==> ', targetPath);
-            return;
-          }
-          elValue.renderLast[upIndex] = newUpd;
-
-          // -- do update
           DEBUG && console.log('storeDOM', ATTR_SUB, '(updating) ', el.tagName, el.id, ':', value, ' ==> ', targetPath);
           if (targetPath in specialTarget) {
-            // -- special target
             specialTarget[targetPath].apply(el,[value, ...args]);
           } else if (value !== undefined) {
-            // -- normal target
             objPath(el,targetPath).set(value);
             if (value.includes && (value.includes(' '+ATTR_SUB+'="') || value.includes(' '+ATTR_EVT+'="'))  )  {
               pending = true;
