@@ -16,7 +16,7 @@ import createStyle from './createStyle.js';
 
 const ATTR_EVT = 'do'
 const ATTR_SUB = 'show'
-const DEBUG = true;
+const DEBUG = false;
 
 const specialTarget = {
   $visible (value, arg) {

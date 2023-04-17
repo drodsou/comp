@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    body { background-color: black; color:white;}
+    * { font-size:60px;}
+  </style>
+</head>
+<body>
+
+  <!-- html -->
+
+  <span show="st1.buttonHtml"></span>
+
+  <ce-box show="st1.box1.slot"></ce-box>
+  <ce-box-shadow show="st1.box2.slot"></ce-box-shadow>
+ 
+    
+  <!-- javascript -->
+
+  <script type="module">
+
+    /*
+     *Test if element inserted tinamically with show/evt also get bound 
+    */
+
+    import store from '/util/store.js';
+    import storeDOM from '/util/storeDOM.js';
+
+    import '/ce/ce-box.js';
+    import '/ce/ce-box-shadow.js';
+
+    const st1 = store(st=>({
+      data : {
+        id: 'st1',
+        count:11,
+        box1: { title: 'b1', slot: '<b>B1</b>'},
+        box2: { title: 'b2', slot: '<b>B2</b>'}
+      },
+      calc: {
+        buttonHtml() {
+          // -- dynamic element with bindings
+          return `<button show="st1.count" do="st1.inc">btn</button>`;
+        },
+
+      },
+      do : {
+        inc() { 
+          st.data.count += 1;
+          st.update()
+        },
+      }, 
+    }));
+
+    storeDOM({st1});  
+    
+
+  </script>
+
+
+
+
+</body>
+</html>

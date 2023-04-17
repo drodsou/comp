@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    body { background-color: black; color:white; }
+  </style>
+</head>
+<body>
+
+  <!-- html -->
+
+  <h1>qp-mini</h1>
+
+  <qpm-count></qpm-count>
+  <qpm-count></qpm-count>
+  <hr>
+  <qpm-table></qpm-table>
+  
+
+  <script type="module">
+  
+    import '/qp-mini/qpm-count.js';
+    import '/qp-mini/qpm-table.js';
+    import qomp from '/qomp/qomp-mini.js';
+
+    
+    // -- Full Client Side Rendering (better before body)
+    qomp.defineAll();
+    // ;[ce2CountTag].forEach(tag=>tag.define());
+
+
+    // // -- SSR compatible (after body)
+    // // -- server: this would alredy come from server
+    // document.getElementById('c1').innerHTML = ce2CountTag.render({props:{count:11},innerHTML:'ssr1'});
+    // document.getElementById('c2').innerHTML = ce2CountTag.render({props:{count:22},innerHTML:'ssr2'});
+    
+    
+    // // -- client: this to check 'define' does not overwrites
+    // for (let e of document.querySelectorAll('qp-count .inc')) {
+    //   e.addEventListener('click',()=>console.log('click'));
+    // }
+    // // -- client hydrate
+    // qomp.defineAll(true);
+    // // ce2CountTag.define(); // passing props = already rendered, just "hydrate", enven ssrProps = {}
+
+    
+  </script>
+
+
+
+</body>
+</html>

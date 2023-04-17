@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    body { background-color: black; color:white; }
+  </style>
+</head>
+<body>
+
+  <script type="module">
+  
+    import '/qp-mini/qpm-count.js';
+    import '/qp-mini/qpm-table.js';
+    import qomp from '/qomp/qomp-mini.js';
+    qomp.defineAll();
+
+    import store from '/util/store.js';
+    import storeDOM from '/util/storeDOM.js';
+
+    const st1 = store(st=>({
+      data : {
+        table1 : {
+          rows : [
+            {col1: 'C1r1', col2: 'C2r1'},
+            {col1: 'C1r2', col2: 'C2r2'},
+          ],
+
+        },
+      },
+      do : {
+        addRow() {
+          st.data.table1.rows.push({col1:Math.random(), col2: Date.now()}); 
+          st.update(); 
+        },
+        selected(ev) {
+          console.log('select detected', ev.detail)
+        }
+      }
+    }));
+    storeDOM({st1});
+   
+  </script>
+
+  <!-- html -->
+
+  <h1>qp-mini</h1>
+
+  <qpm-count></qpm-count>
+  <qpm-count></qpm-count>
+  <hr>
+  <qpm-table></qpm-table>
+  <hr>
+  <button do="st1.addRow">Add row</button>
+  <qpm-table show="st1.table1|props" do="st1.selected|select"></qpm-table>
+
+
+
+</body>
+</html>
