@@ -1,6 +1,9 @@
 # qomp and other libs
 
-TODO: storeDOM
+TODO: qpm-table
+- confirmar que no-slot es the way to go.
+
+
 - rename: calc => view, do => action?, data=>model ?   model-view-action?
 - storedom: que elimine tb los eventlisteners
 

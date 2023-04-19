@@ -23,13 +23,16 @@ export default function create (storeFn=()=>{}) {
       data:{},
       update (dPath,dNew) {
         DEBUG && console.log('store:update', store.data.id, dPath, dNew)
-
+        
         // -- optional (path, obj), partial semideep update
-        if (dPath) try {
+        if (dPath!==undefined || dNew !== undefined) try {
+          DEBUG && console.log('store:updating', store.data.id, dPath, dNew)
           if (!dNew) { dNew = dPath; dPath = ''; }
           let d = !dPath ? store.data : dPath.split('.').reduce((p,c)=>p[c],store.data);
           Object.assign(d, dNew);
+          DEBUG && console.log('store:updated', store.data.id, store.data)
         } catch (e) {
+          DEBUG && console.log('store:error updating', store.data.id)
           throw new Error(`store: problem finding path '${dPath}' in store {${Object.keys(store.data).join()}...}`); 
         }
 

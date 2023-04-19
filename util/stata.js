@@ -17,6 +17,10 @@ export function stataOption (stata, opts) {
   `;
 }
 
+export function stataDone (stataVal,done, crash='Error') {
+  return stataOption(stataVal,{[STATA.DONE]:done, [STATA.CRASH]:crash});
+}
+
 function defaultSpinner() {
   let c = 'spinner-xhlu4g';
   return /*html*/`
@@ -46,8 +50,14 @@ function defaultSpinner() {
  * updates .stata and .row of a util/store.js on result of promise returnin {error, rows}
 */
 export async function stataFetch2Store(st, stKey, prom) {
+  if (prom === undefined) { prom = stKey; stKey = ''; }
   st.update(stKey, { stata:STATA.BOOTING, rows:[]} )
   let res = await prom;
-  if (res.error) st.update(stKey, { stata:STATA.CRASH, rows:[]} )
-  else st.update(stKey, { stata:STATA.DONE, rows:res.rows} )
+  if (res.error) { 
+    // console.log('--crash'); 
+    st.update(stKey, { stata:STATA.CRASH, rows:[]} )
+  } else {
+    // console.log('--done');
+    st.update(stKey, { stata:STATA.DONE, rows:res.rows} )
+  }
 }
