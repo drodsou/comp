@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="./reset.css">
+</head>
+<body>
+  <div id="as1"></div>
+  <script type="module">
+    import xAsync from './x-async.js';
+    import stata from './stata.js';
+
+    window.st = {
+      data: {
+        as1 : {
+          stata: 0,
+          rows : [],
+          selected: undefined
+        }
+      },
+      view : {
+      },
+      up() {
+        document.querySelector('#as1').innerHTML = stata(st.data.as1, xAsync);
+      },
+      action: {
+      }
+    }
+
+    stata.load(st, st.data.as1, xAsync.query()
+      // .then(res=>{ optional eror/ok post processing })
+    )
+
+    
+    
+  </script>
+</body>
+</html>

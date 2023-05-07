@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="./reset.css">
+  <style>
+    x-table th {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div onclick="st.action.select(event)"></div>
+  <script type="module">
+    import xTable from './x-table.js';
+
+    window.st = {
+      data: {
+        rows : [
+          {col1: 'c1r1', col2: 'c2r1'},
+          {col1: 'c1r2', col2: 'c2r2'},
+        ],
+        cols : [
+          {id: 'col1', label: 'COL1'},
+          {id: 'col2', label: 'COL2'},
+        ],
+        key : 'col1',
+        selectedKey: 'c1r2'
+      },
+      up() {
+        document.querySelector('div').innerHTML = xTable(st.data);
+      },
+      action: {
+        select(ev) {
+          let tr 
+          if (ev.target.tagName == 'TR') tr = ev.target;
+          if (ev.target.tagName == 'TD') tr = ev.target.parentNode;
+          if (tr) {
+            console.log('selected', tr.dataset.key);
+            st.data.selectedKey = tr.dataset.key;
+            st.up()
+          }
+        }
+      }
+    }
+    st.up();
+
+  </script>
+</body>
+</html>

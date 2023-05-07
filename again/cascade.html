@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    body {background-color: black; color: white; font-family: open sans; }
+    button { border:0; cursor:pointer; }
+    .odd { background-color: rgb(241, 178, 222); }
+  </style>
+</head>
+<body>
+  <div id="app" onclick="st.action.inc(event)"></div>
+
+  <script type="module">
+    window.qs = s=>document.querySelector(s);
+    window.st = {
+      data: {
+        counters: [0,0,0]
+      },
+      view : {
+        BgClass (num) {
+          return num % 2 === 0 ? 'even' : 'odd';
+        }
+      },
+      action: {
+        inc (e) {
+          let i = parseInt(e.target.dataset.index);
+          st.data.counters[i]++;
+          st.up()
+        }
+      },
+      ref: {
+        app: qs('#app')
+      },
+      up() {
+        st.ref.app.innerHTML = st.data.counters.map( (c,i)=>(`
+          <button class="${st.view.BgClass(c)}" data-index="${i}">${c}</button>
+        `)).join('');
+      }
+    }
+    st.up();
+
+  </script>
+
+
+</body>
+</html>

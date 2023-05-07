@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="reset.css">
+  <style>
+    #sp2 x-spinner {
+      /* border-width: 1px; */
+      border: 1px solid #ddd;
+      border-left-color: red;
+    }
+  </style>
+</head>
+<body>
+  <div id="sp1"></div>
+  <div id="sp2"></div>
+  <script type="module">
+    import xSpinner from './x-spinner.js';
+    document.querySelector('#sp1').innerHTML = xSpinner();
+    document.querySelector('#sp2').innerHTML = xSpinner();
+
+  </script>
+</body>
+</html>
