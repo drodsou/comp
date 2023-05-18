@@ -6,7 +6,7 @@
   <title>Document</title>
   <link rel="stylesheet" href="reset.css">
   <style>
-    #sp2 x-spinner {
+    .spinner-red {
       /* border-width: 1px; */
       border: 1px solid #ddd;
       border-left-color: red;
@@ -14,13 +14,10 @@
   </style>
 </head>
 <body>
-  <div id="sp1"></div>
-  <div id="sp2"></div>
+  <div id="app"></div>
   <script type="module">
-    import xSpinner from './x-spinner.js';
-    document.querySelector('#sp1').innerHTML = xSpinner();
-    document.querySelector('#sp2').innerHTML = xSpinner();
-
+    import drsSpinner from './drs-spinner.js';
+    document.querySelector('#app').innerHTML = drsSpinner({id:'sp1'}) + drsSpinner({id:'sp2', class:'spinner-red petaho'});
   </script>
 </body>
 </html>
