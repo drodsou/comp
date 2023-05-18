@@ -1,0 +1,21 @@
+drs-table table {
+  border-collapse: collapse;
+  cursor: pointer;
+  width: 100%;
+}
+
+drs-table tr {
+  border-bottom: 1px solid grey;
+}
+
+drs-table th {
+  text-align: left;
+}
+
+drs-table th, td {
+  padding: 0.5rem;
+}
+
+drs-table [data-selected] {
+  background-color: grey;
+}

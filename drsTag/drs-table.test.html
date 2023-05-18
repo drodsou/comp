@@ -6,7 +6,7 @@
   <title>Document</title>
   <link rel="stylesheet" href="./reset.css">
   <style>
-    x-table th {
+    drs-table th {
       color: red;
     }
   </style>
@@ -14,7 +14,7 @@
 <body>
   <div onclick="st.action.select(event)"></div>
   <script type="module">
-    import xTable from './x-table.js';
+    import drsTable from './drs-table.js';
 
     window.st = {
       data: {
@@ -24,13 +24,13 @@
         ],
         cols : [
           {id: 'col1', label: 'COL1'},
-          {id: 'col2', label: 'COL2'},
+          {id: 'col2', },
         ],
         key : 'col1',
         selectedKey: 'c1r2'
       },
       up() {
-        document.querySelector('div').innerHTML = xTable(st.data);
+        document.querySelector('div').innerHTML = drsTable(st.data);
       },
       action: {
         select(ev) {
