@@ -8,13 +8,21 @@ Generic "component" creator to use both in server and browser
   }
 Returns a function as a wrapped html(), wich also has .css() as a property.  
 Calling this last function is what returns the html and returns/sets the css
+
+Note that even though we are using <drs-sometag> they are NOT defined custom-elements (wc), but just a custom tag. This is intentional to interop with SSR and client.
 */
 
 let cssDone = false;
 
-/** @type {import('./drsTag.d.ts').default} */
-
-export default function drsTag (importMetaUrl, {html=()=>'', css=()=>''}) {
+/** 
+ * @type {import('./drsTag.d.ts').default} 
+ */
+export default function drsTag (importMetaUrl, {
+  html=()=>'', 
+  css=()=>'', 
+  update=(el={})=>{}, // this returns void
+  query=()=>({error:'no query', data: {}})  // this returns object
+}) {
 
   /** @type {string} */
   let tag
@@ -25,37 +33,39 @@ export default function drsTag (importMetaUrl, {html=()=>'', css=()=>''}) {
     throw new Error('importMetaUrl does not seem a valid file url: ' + importMetaUrl)
   }
 
-  /** 
-   * The tag function to return
-   * @param {{id?: string, class?:string, [p:string] : any}} props 
-  */
-  const htmlFn = (props={}) => {
+  // /** @type {import('./drsTag.d.ts').Tag<THP, TQP, TQR>} */
+  const tagFn = (htmlProps={}) => {
     let style = ''
     if (!cssDone) {
       if (typeof document !== 'undefined') {
         // -- browser
         // @ts-ignore
-        document.querySelector('head').insertAdjacentHTML('afterbegin', htmlFn.css() )
+        document.querySelector('head').insertAdjacentHTML('afterbegin', tagFn.css() )
       } else {
-        style = htmlFn.css()
+        style = tagFn.css()
       }
     }
     return (
       style 
       + '<'+ tag 
-      + (props.id ? ` id="${props.id}"` : '') 
-      + (props.class ? ` class="${props.class}"` : '') 
+      + (htmlProps.id ? ` id="${htmlProps.id}"` : '') 
+      + (htmlProps.class ? ` class="${htmlProps.class}"` : '') 
       +'>' 
-      + html(props) 
+      + html(htmlProps) 
       + '</'+tag+'>'
     );
   }
 
-  htmlFn.css = ()=> {
+  tagFn.css = ()=> {
     cssDone = true;
     if (css === true) return `<link rel="stylesheet" href="${importMetaUrl.replace('.js','.css')}" />` 
     else return `<style>${css().replaceAll('$T$',tag)}</style>`
   }
 
-  return htmlFn;
+  tagFn.update = update;
+
+  // /** @typedef {import('./drsTag.d.ts').QueryResponse} QueryResponse */
+  tagFn.query = query;
+
+  return tagFn;
 }

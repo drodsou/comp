@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="reset.css">
+  <style>
+    .spinner-red {
+      /* border-width: 1px; */
+      border: 1px solid #ddd;
+      border-left-color: red;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module">
+    import drsSpinner from './drs-spinner.js';
+    document.querySelector('#app').innerHTML = drsSpinner({id:'sp1'}) + drsSpinner({id:'sp2', class:'spinner-red petaho'});
+  </script>
+</body>
+</html>
