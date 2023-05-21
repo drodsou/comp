@@ -1,30 +1,40 @@
+type HtmlPropsBase = {
+  id? : string;
+  class? : string;
+  [key:string] : unknown;
+}
 
+type HtmlFunc<T_htmlProps> = (T_htmlProps: T_htmlProps) => string; 
+type UpdateFunc<T_htmlProps> = (T_htmlProps: T_htmlProps, el:Object) => void; 
 
-type HtmlFunc<HtmlProps> = (htmlProps: HtmlProps) => string; 
+type QueryFunc<T_queryProps, T_queryReturn> = (T_queryProps: T_queryProps) => {error:string, data: T_queryReturn}; 
 
-type QueryFunc<QueryProps, QueryReturn> = (queryProps: QueryProps) => {error:string, data: QueryReturn}; 
-
-type TagFunc<HtmlProps, QueryProps, QueryReturn> = HtmlFunc<HtmlProps> & { 
-  query: QueryFunc<QueryProps, QueryReturn>
+type TagFunc<T_htmlProps, T_queryProps, T_queryReturn> = HtmlFunc<T_htmlProps> & { 
+  query: QueryFunc<T_queryProps, T_queryReturn>;
+  update: UpdateFunc<T_htmlProps>;
 };
 
-type TagdefFunc = <HtmlProps, QueryProps, QueryReturn> (
+type TagdefFunc = <T_htmlProps extends HtmlPropsBase, T_queryProps, T_queryReturn> (
   tagname: string, 
   options: { 
-    html: HtmlFunc<HtmlProps>, 
-    query: QueryFunc<QueryProps, QueryReturn> 
-  }) => TagFunc<HtmlProps, QueryProps, QueryReturn>
+    html: HtmlFunc<T_htmlProps>, 
+    update: UpdateFunc<T_htmlProps>, 
+    query: QueryFunc<T_queryProps, T_queryReturn> 
+  }) => TagFunc<T_htmlProps, T_queryProps, T_queryReturn>
 
 
 //--
 
-const tagdef : TagdefFunc = function  (tagname, { html, query }) {
-  const tag = function (htmlProps:any) {
-    return html(htmlProps);
+const tagdef : TagdefFunc = function  (tagname, { html, query, update }) {
+  const tag = function (T_htmlProps:any) {
+    return html(T_htmlProps);
   };
   tag.query = query;
+  tag.update = update;
   return tag;
 }
+
+// -- TEST
 
 const tag 
   = tagdef <{count:number}, {name:string}, {len:number}> ('tagname', {
@@ -36,20 +46,16 @@ const tag
           error:'', 
           data: {len:name.length}
         }
-      }
+      },
+      update({count}) {}
+
     }
 );
 
-// -- resumido
-type Fn<T> = (o:T) => string;
-type FnGen = <T> (fn: Fn<T> ) => Fn<T>
+// coj
+tag({count:1})
+tag.update({count:3}, {})
+let q = tag.query({name:'a'});
 
-const fngen : FnGen = function (fn) {
-  return (o) => fn(o)  // donde 'o' tiene el tipo forzado al tipo que se use en el parametro de la fn pasada
-}
 
-// let fn =  <{uno:string}> fngen  ( ({uno}) => ' ' + uno )   // ERROR
-// let fn = fngen( ({uno} : {uno:string} )=> ' ' + uno )    // opcion 1
-// let fn =  fngen <{uno:string}> ( ({uno}) => ' ' + uno )   // opcion 2
-let fn : Fn<{uno:string}>  = fngen ( ({uno}) => ' ' + uno )   // opcion 3 (?)
-let res = fn() // hover tiene que mostrar el parametro esperado {uno:string}
+

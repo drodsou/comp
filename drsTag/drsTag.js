@@ -15,16 +15,14 @@ Note that even though we are using <drs-sometag> they are NOT defined custom-ele
 let cssDone = false;
 
 /** 
- * @template {import('./drsTag.types.d.ts').HtmlPropsBase} T_htmlProps  // extends
- * @template T_queryProps
- * @template T_queryReturn
  * @type {import('./drsTag.types.d.ts').TagdefFunc} 
  */
 export default function drsTag (importMetaUrl, {
   html=()=>'', 
   css=()=>'', 
-  update,// =(htmlProps={}, el={})=>{}, // this returns void
-  query, //=()=>({error:'no query', data: {}})  // this returns object
+  /** @type {import('./drsTag.types.d.ts').UpdateFunc} */
+  update, //=(htmlProps={}, el={})=>{}, // this returns void
+  query=()=>({error:'no query', data: {}})  // this returns object
 }) {
 
   /** @type {string} */
@@ -36,9 +34,9 @@ export default function drsTag (importMetaUrl, {
     throw new Error('importMetaUrl does not seem a valid file url: ' + importMetaUrl)
   }
 
-  /** @type {import('./drsTag.types.d.ts').TagFunc<T_htmlProps, T_queryProps, T_queryReturn>} */
-  // @ts-ignore
-    const tagFn = (htmlProps={}) => {
+  
+  /** @param {import('./drsTag.types.d.ts').HtmlPropsBase} htmlProps */
+  const tagFn = (htmlProps={}) => {
     let style = ''
     if (!cssDone) {
       if (typeof document !== 'undefined') {
@@ -55,6 +53,7 @@ export default function drsTag (importMetaUrl, {
       + (htmlProps.id ? ` id="${htmlProps.id}"` : '') 
       + (htmlProps.class ? ` class="${htmlProps.class}"` : '') 
       +'>' 
+      // @ts-ignore
       + html(htmlProps) 
       + '</'+tag+'>'
     );
@@ -66,10 +65,17 @@ export default function drsTag (importMetaUrl, {
     else return `<style>${css().replaceAll('$T$',tag)}</style>`
   }
   
-  tagFn.update = (htmlProps, el) => update(htmlProps, el);
+  tagFn.update = update ;
 
   // /** @typedef {import('./drsTag.d.ts').QueryResponse} QueryResponse */
   tagFn.query = query;
 
   return tagFn;
 }
+
+// -- TEST 
+
+
+
+
+
