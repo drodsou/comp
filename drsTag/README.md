@@ -1,3 +1,5 @@
+A van.js like, but simpler and state agnostic
+
 # TODO
 - elemento toglle, probar drsTag que este refinitivo
 

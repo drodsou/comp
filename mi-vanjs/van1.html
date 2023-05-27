@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    body {background-color: black; color: white; font-family: open sans; }
+    button { border:0; cursor:pointer; }
+  </style>
+</head>
+<body>
+  
+
+  <script type="module">
+    // import van from "./van-0.11.10.min.js";
+    import van from "https://vanjs.org/code/van-latest.min.js";
+
+    const {button, span} = van.tags
+    const counter = van.state(1)
+    // const st = van.state({count:2})
+    let my = 3;
+
+    const Counter = (prop) => {
+      console.log('Counter()')
+      // console.log(st)
+      return (
+        span("❤️ ", counter, " ", my,
+          // button({onclick: () =>{ 
+          //   st.val = {...st.t, count: st.t.count+1} 
+          // }}, "👍"),
+          button({onclick: () =>{ my++; counter.val += 1}}, "👎"),
+        )
+      );
+    }
+
+    van.add(document.body, Counter())
+    // setTimeout(()=>{
+    //   ++counter.val
+    // },1000)
+    
+  </script>
+
+
+</body>
+</html>

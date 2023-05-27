@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    body {background-color: black; color: white; fill:white; font-family: open sans; }
+    button { border:0; cursor:pointer; }
+    .odd { background-color: rgb(0, 253, 253);}
+  </style>
+</head>
+<body>
+  <!-- pasted from ssr-->
+  <button data-tagid="e6c84531"><span data-tagid="654b2084">2</span></button>
+  <mivan-uids style="display:none;">["e6c84531","654b2084"]</mivan-uids>
+  <!---->
+
+  <script type="module">
+      import mivan from './mivan.js';
+      import {App} from './mivan.ssr.common.js';
+      mivan.hydrate(App)
+      
+
+  </script>
+    <!-- end pasted -->
+
+</body>
+</html>
