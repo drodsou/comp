@@ -1,7 +1,7 @@
-A van.js like, but simpler and state agnostic
+
 
 # TODO
-- elemento toglle, probar drsTag que este refinitivo
+- elemento toggle, probar drsTag que este refinitivo
 
 - storeDOM standard: data, view, action, up, ref
 
