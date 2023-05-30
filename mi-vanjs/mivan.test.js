@@ -8,7 +8,7 @@ const {button, div, svg, style, hr, link} = mivan.tags;
 let st1 = { count: 2, countB: 3, list: ['uno','dos','tres']}
 
 // ,(el)=>{console.log('el',el); if (st.count%2) { el.classList.add('odd') } else el.classList.add('odd') }
-mivan.links.push("mivan.test.css");
+mivan.css.push("mivan.test.css");
 let Box = (props) => (
   div( {class:'box'},
     // link({rel:"stylesheet", href:"mivan.test.css"}),

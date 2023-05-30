@@ -7,7 +7,7 @@ export default function () {
   return span({class:F})
 }
 
-mivan.styles.push(`
+mivan.css.push(`
   .${F} {
     display: inline-block;
     aspect-ratio: 1;

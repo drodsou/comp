@@ -6,42 +6,24 @@ const tags2 = `a,abbr,acronym,address,applet,article,aside,audio,b,base,basefont
  */
 function uid () {
   let ret
-  if (uid.uids.length > 0) { ret =  uid.uids.shift(); console.log('hydrating')} 
+  if (uid.uids.length > 0) { ret =  uid.uids.shift(); } 
   else {  ret = crypto.randomUUID().slice(0,8)  }
   return ret;
 }
 uid.uids = []
 
-const dyn = []
-const css = []
 
-// function htmlIds() {
-//   let ids = [...new Set(this.dyn.map(e=>e.id))]
-//   return `\n<mivan-uids style="display:none;">${JSON.stringify(ids)}</mivan-uids>`
-// }
 
 function htmlIds() {
-  let uids = [...new Set(dyn.map(e=>e.id))]
-  return `\n<mivan-uids style="display:none;">${JSON.stringify(uids)}</mivan-uids>`
+  let ids = [...new Set(this.dyn.map(e=>e.id))]
+  return `\n<mivan-uids style="display:none;">${JSON.stringify(ids)}</mivan-uids>`
 }
-
-
-
-/**
- * normalize strings, object.html and object[].html to strings
- */
-function tval(val) {
-  // if (val.html) return val.html
-  if (Array.isArray(val)) return val.join('\n')
-  if (typeof val === 'function') return val()
-  return val
-}
-
 
 
 function createTag (tagName, closingTag=true) {
   let tag = function (props={}, ...children) {
-    children = children.flat();   // TODO: needed ?, redundant with tval array?
+    children = children.flat();
+    let dyn = []
     let html = '<' + tagName
 
     // -- PROPS
@@ -86,6 +68,13 @@ function createTag (tagName, closingTag=true) {
           return;
         }
 
+        // -- nested child
+        if (c.html) {
+          html += c.html;
+          dyn = dyn.concat(c.dyn)
+          return;
+        }
+
         // -- plain text
         return html += c;
       })
@@ -94,7 +83,7 @@ function createTag (tagName, closingTag=true) {
     } // -- closingTag
 
     // ;!'br,input'.includes(tagName) && html += '</'div>'
-    return html;
+    return {html, dyn, htmlIds};
   }
   tag.tagName = tagName
   return tag;
@@ -105,58 +94,60 @@ const tags = {};
 tags1.split(',').forEach(t=>tags[t] = createTag(t, false))
 tags2.split(',').forEach(t=>tags[t] = createTag(t, true))
 
+function tval(val) {
+  if (val.html) return val.html
+  if (Array.isArray(val)) return val.map(v=>v.html ? v.html : v).join('\n')
+  return val
+}
 
 function getCSS() {
-  let cssLinks = '';
-  let cssStyles = '';
-  for (let c of css) {
-    if (c.endsWith('.css')) cssLinks += `<link rel="stylesheet" href="${c}" />\n`
-    else cssStyles += c + '\n';
-  }
-  return cssLinks + '\n<style>' + cssStyles + '</style>';
+  let h = '';
+  links.forEach(link=>{
+    if (link) h += `<link rel="stylesheet" href="${link}" />\n` 
+  });
+  h += `<style>${styles.join('\n')}</style>`
+  return h;
 }
 
-function addEvents() {
-  console.log('addEvents', dyn)
-  for (let e of dyn) {
-    if (e.type !== 'event') continue;
-    document.querySelector(`[data-tagid="${e.id}"]`).addEventListener(e.prop,e.fn)
-  }
-}
+const rendered = []
 
-// -- INIT
-if (typeof window !== 'undefined') { 
-  let uidsSsrEl = document.querySelector('mivan-uids')
-  if (uidsSsrEl) uid.uids = JSON.parse(uidsSsrEl.innerText)
-  
-  Promise.resolve().then(()=>{
+function render (vanEl, domEl=undefined) {
+  // -- if hydrating omit first render
+  if (domEl) { 
+    domEl.insertAdjacentHTML('beforeEnd', vanEl.html) 
     document.querySelector('head').insertAdjacentHTML('beforeEnd', getCSS())
-    addEvents();
+  }
+  rendered.push(vanEl)
+  // -- attach events
+  vanEl.dyn.forEach(e=>{
+    if (e.type !== 'event') return;
+    document.querySelector(`[data-tagid="${e.id}"]`).addEventListener(e.prop,()=>{e.fn()})
   })
 }
 
-function render (vanEl, domEl) {
-  // -- if hydrating omit first render
-  if (domEl) { 
-    domEl.insertAdjacentHTML('beforeEnd', vanEl) 
-  }
+function hydrate(vanFn) {
+  uid.uids = JSON.parse(document.querySelector('mivan-uids')?.innerText)
+  // console.log('hydrating', uid.uids)
+  render(vanFn())
 }
 
 function update() {
-  for (let b of dyn) {
-    if (b.type !== 'bind') continue;
-    let el=document.querySelector(`[data-tagid="${b.id}"]`)
-    if (!el) continue;  // svelte first time, also vanilla: warning?
-    let prop = b.prop
-    if (prop === 'class') prop = 'className'
-    el[prop] = tval(b.fn(el))
-  }
+  rendered.forEach(vanEl=>{
+    vanEl.dyn.forEach(b=>{
+      if (b.type !== 'bind') return;
+      let el=document.querySelector(`[data-tagid="${b.id}"]`)
+      let prop = b.prop
+      if (prop === 'class') prop = 'className'
+      el[prop] = tval(b.fn(el))
+    })
+  })
 }
 
-
+const links = ['']
+const styles = ['']
 const file = (importMetaUrl) => importMetaUrl.split('/').pop().split('.').shift(); 
 
-export default {tags, createTag, up:update, update, file, render, css, getCSS, htmlIds}
+export default {tags, createTag, render, hydrate, up:update, update, links, styles, file, getCSS}
 
 
 

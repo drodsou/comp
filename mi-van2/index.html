@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    body {background-color: black; color: white; font-family: open sans; }
+    button { border:0; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <div id="app2"></div>
+
+  <script type="module">
+    function uid () {
+      let id = crypto.randomUUID().slice(0,8);
+      uid.uids.push(id)
+      return id;
+    }
+    uid.uids = [];
+    
+    const dyn = []
+    
+
+    let childVal = (child) =>{
+      if (typeof child ==='string') return child
+      if (typeof child === 'function') return child()
+    }
+
+    function div(props, child) {
+      let id = uid();
+      let idChild = uid()
+      let html = `<div id=${id}><span id=${idChild}>${childVal(child)}</span></div>`;
+      if (props.onclick) dyn.push({id, type:"evt", prop:'click', fn:props.onclick})
+      if (typeof child === 'function') dyn.push({id:idChild, type:"upd", prop:'innerHTML', fn:child})
+
+      return html
+    }
+
+    function addEvents() {
+      dyn.filter(e=>e.type==="evt").forEach(e=>{
+        console.log(e.id, e.prop,e.fn)
+        document.getElementById(e.id).addEventListener(e.prop,e.fn)
+        //TODO: check if id is mounted (element defined but not used)
+      })
+    }          
+
+    function update() {
+      dyn.filter(e=>e.type==="upd").forEach(e=>{
+        document.getElementById(e.id)[e.prop] = e.fn()
+      })
+    }          
+          
+    if (typeof window !== 'undefined') { Promise.resolve().then(addEvents); }
+
+    // -- USE
+    let st = {count:1, count2:2}
+
+    let box = (
+        div( {onclick:()=>update(st.count++)}, 
+          ()=>'uno ' + st.count
+        )
+    )
+
+    let box2 = (
+        div( {onclick:()=>update(st.count2++)}, 
+          ()=>'uno ' + st.count2
+        )
+    )
+    
+    document.querySelector('#app').innerHTML = box;
+    document.querySelector('#app2').innerHTML = box2;
+
+
+  </script>
+
+
+</body>
+</html>
