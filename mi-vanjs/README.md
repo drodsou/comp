@@ -3,15 +3,11 @@ A van.js like, but simpler and state agnostic
 
 # TODO
 
-- aclarar hydrate render en browser, ssr, y svelte
-- svelte interop, 
-  - @html + $: mivan.update(st) works, but, what if several components? possible to auto attach events, or at least one .render for all mivan comps ??
-  - link from each component to mivan, to not having to imprt it explicitly
-  - add reactive props on mount, ce style ?
-- better name
-- uid remember last, prevent the odd chance 2 uid ??
+- better name than mivan
 - ssr => data tag with json, eg initial state
 - component converter to svelte, eg
+- svelte interop, 
+  - add reactive props on mount, ce style ?
 
 # DONE
 - mivan2, global dyn, global css, svelte interop (not recommended)
@@ -24,5 +20,29 @@ A van.js like, but simpler and state agnostic
 - custom element interop
 ```js
   '<ce-icon>red</ce-icon>',
-  mivan.createTag('ce-icon')({},'green'
+  tag('ce-icon',{},'green')
 ```
+svelte: use mivan.render on onMount(), div id=#mivan, $: mivan.update(st)
+  - tambien {@html c}, pero no {@html C()}, pues lo recrea
+  - tampoco funcionan los link css, hacer import css adicional en svelte (los style si funcionan)
+
+
+# STEPS CSR / SSR / Svelte
+
+CLI                                 SSR                SVELTE
+                                    ssrInst
+                                    ssrGetHtml
+                                    ssrGetCss
+                                    ssrAddHtmlUiid
+                                    ...
+                                    readHtmlUuid 
+instantiate C(): dyn, uuids, css    cliInst            cliInst (code)
+addcss                                                 addcss (opc, no si links)
+mount                                                   (mount (html))
+addevents                           addevents          addevents
+
+
+
+
+
+

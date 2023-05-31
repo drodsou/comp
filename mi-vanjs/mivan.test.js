@@ -3,12 +3,13 @@ import Spinner from './components/Spinner/Spinner.js';
 
 import '../ce/ce-icon.js';
 
-const {button, div, svg, style, hr, link} = mivan.tags;
+const {button, div, svg, style, hr, link, tag} = mivan.tags;
 
 let st1 = { count: 2, countB: 3, list: ['uno','dos','tres']}
 
 // ,(el)=>{console.log('el',el); if (st.count%2) { el.classList.add('odd') } else el.classList.add('odd') }
 mivan.css.push("mivan.test.css");
+
 let Box = (props) => (
   div( {class:'box'},
     // link({rel:"stylesheet", href:"mivan.test.css"}),
@@ -47,7 +48,7 @@ let App = ()=> (
     Spinner(),
     // -- custom element
     '<ce-icon>red</ce-icon>',
-    mivan.createTag('ce-icon')({},'green'),
+    tag('ce-icon',{},'green'),
     // -- map examples
     ()=>st1.list.map(l=>button({},l))
     // ()=>st1.list.map(l=>`<button>${l}</button>`)
@@ -56,8 +57,6 @@ let App = ()=> (
 )
 
 let app = App()
-console.log(app.dyn)
-
 // -- force same uids in regeneration
 // mivan.uid.uids = [...new Set(app.dyn.map(e=>e.id))]
 // let app2 = App()
@@ -66,7 +65,6 @@ console.log(app.dyn)
 if (typeof window === 'undefined') process.exit();
 
 // -- browser
-
 
 mivan.render(app, document.body);
 // document.querySelector('button').addEventListener('click',(ev)=>{ st.count++; app.update()})

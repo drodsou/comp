@@ -104,7 +104,7 @@ function createTag (tagName, closingTag=true) {
 const tags = {};
 tags1.split(',').forEach(t=>tags[t] = createTag(t, false))
 tags2.split(',').forEach(t=>tags[t] = createTag(t, true))
-
+tags.tag = (tagName, props, ...children) => createTag(tagName,true)(props, ...children)
 
 function getCSS() {
   let cssLinks = '';
@@ -117,30 +117,33 @@ function getCSS() {
 }
 
 function addEvents() {
-  console.log('addEvents', dyn)
   for (let e of dyn) {
     if (e.type !== 'event') continue;
     document.querySelector(`[data-tagid="${e.id}"]`).addEventListener(e.prop,e.fn)
   }
 }
 
-// -- INIT
-if (typeof window !== 'undefined') { 
-  let uidsSsrEl = document.querySelector('mivan-uids')
-  if (uidsSsrEl) uid.uids = JSON.parse(uidsSsrEl.innerText)
-  
-  Promise.resolve().then(()=>{
-    document.querySelector('head').insertAdjacentHTML('beforeEnd', getCSS())
-    addEvents();
-  })
+function addCss() {
+  document.querySelector('head').insertAdjacentHTML('beforeEnd', getCSS())
 }
 
+/** rendered: if rendering several isles */
+let rendered = false
+
 function render (vanEl, domEl) {
-  // -- if hydrating omit first render
-  if (domEl) { 
-    domEl.insertAdjacentHTML('beforeEnd', vanEl) 
-  }
+  if (typeof domEl === 'string') domEl = document.querySelector(domEl)
+  if (!rendered) addCss()  
+  domEl.insertAdjacentHTML('beforeEnd', vanEl) 
+  if (!rendered) addEvents()
+  rendered = true;
 }
+
+function hydrate (...vanEls) {
+  let uidsSsrEl = document.querySelector('mivan-uids')
+  if (uidsSsrEl) uid.uids = JSON.parse(uidsSsrEl.innerText)
+  addEvents()
+}
+
 
 function update() {
   for (let b of dyn) {
@@ -156,7 +159,7 @@ function update() {
 
 const file = (importMetaUrl) => importMetaUrl.split('/').pop().split('.').shift(); 
 
-export default {tags, createTag, up:update, update, file, render, css, getCSS, htmlIds}
+export default {tags, createTag, up:update, update, file, render, hydrate, css, getCSS, htmlIds}
 
 
 

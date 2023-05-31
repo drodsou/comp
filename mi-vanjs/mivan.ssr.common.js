@@ -3,7 +3,7 @@ import mivan from './mivan.js';
 const {button} = mivan.tags;
 
 mivan.css.push(`
-  button { border: 2px solid yellow; }
+  button { border: 2px solid cyan; }
 `)
 
 let App = ()=> (
