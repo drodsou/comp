@@ -27,7 +27,7 @@ let Box = (props) => (
 // let xExtra = mivan.createTag('x-extra')({gonzo:3}, `x extra`);
 
 let App = ()=> (
-  div( {class:'div1'},
+  div( 
     button( {class:()=>st1.count%2 ? 'odd' : '', onclick: ()=>mivan.up(st1.count++) }, 
       ()=>st1.count
     ),' ',
@@ -48,7 +48,7 @@ let App = ()=> (
     Spinner(),
     // -- custom element
     '<ce-icon>red</ce-icon>',
-    tag('ce-icon',{},'green'),
+    tag('ce-icon','green'),
     // -- map examples
     ()=>st1.list.map(l=>button({},l))
     // ()=>st1.list.map(l=>`<button>${l}</button>`)

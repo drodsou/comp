@@ -15,6 +15,10 @@ uid.uids = []
 const dyn = []
 const css = []
 
+function addCss(str) {
+  css.push(str)
+}
+
 // function htmlIds() {
 //   let ids = [...new Set(this.dyn.map(e=>e.id))]
 //   return `\n<mivan-uids style="display:none;">${JSON.stringify(ids)}</mivan-uids>`
@@ -38,9 +42,18 @@ function tval(val) {
 }
 
 
+const isObj = (x) => Object.prototype.toString.call(x) === '[object Object]';
 
 function createTag (tagName, closingTag=true) {
-  let tag = function (props={}, ...children) {
+
+  let tag = function (...propsAndChildren) {
+    let props, children;
+    if (isObj(propsAndChildren[0])) { 
+      [props, ...children] = propsAndChildren; 
+    } else { 
+      [props, children] = [{}, propsAndChildren]; 
+    }
+
     children = children.flat();   // TODO: needed ?, redundant with tval array?
     let html = '<' + tagName
 
@@ -104,9 +117,9 @@ function createTag (tagName, closingTag=true) {
 const tags = {};
 tags1.split(',').forEach(t=>tags[t] = createTag(t, false))
 tags2.split(',').forEach(t=>tags[t] = createTag(t, true))
-tags.tag = (tagName, props, ...children) => createTag(tagName,true)(props, ...children)
+tags.tag = (tagName, ...propsAndChildren) => createTag(tagName,true)(...propsAndChildren)
 
-function getCSS() {
+function getCss() {
   let cssLinks = '';
   let cssStyles = '';
   for (let c of css) {
@@ -123,8 +136,8 @@ function addEvents() {
   }
 }
 
-function addCss() {
-  document.querySelector('head').insertAdjacentHTML('beforeEnd', getCSS())
+function css2head () {
+  document.querySelector('head').insertAdjacentHTML('beforeEnd', getCss())
 }
 
 /** rendered: if rendering several isles */
@@ -132,7 +145,7 @@ let rendered = false
 
 function render (vanEl, domEl) {
   if (typeof domEl === 'string') domEl = document.querySelector(domEl)
-  if (!rendered) addCss()  
+  if (!rendered) css2head()  
   domEl.insertAdjacentHTML('beforeEnd', vanEl) 
   if (!rendered) addEvents()
   rendered = true;
@@ -159,8 +172,6 @@ function update() {
 
 const file = (importMetaUrl) => importMetaUrl.split('/').pop().split('.').shift(); 
 
-export default {tags, createTag, up:update, update, file, render, hydrate, css, getCSS, htmlIds}
-
-
+export default {tags, createTag, up:update, update, file, render, hydrate, css, addCss, getCss, htmlIds}
 
 
