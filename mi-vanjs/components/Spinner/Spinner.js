@@ -5,6 +5,7 @@ const {span} = mivan.tags;
 
 export default function () {
   return span({class:F})
+  // return `<span class="${F}"></span>`   // alternative syntax
 }
 
 mivan.css.push(`
