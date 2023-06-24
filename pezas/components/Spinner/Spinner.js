@@ -1,6 +1,6 @@
 import pezas from '../../pezas.js';
 
-let F = pezas.file(import.meta.url);
+let F = pezas.fileName(import.meta.url);
 const {span} = pezas.tags;
 
 export default function () {

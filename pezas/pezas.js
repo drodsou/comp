@@ -170,8 +170,8 @@ function update() {
 }
 
 
-const file = (importMetaUrl) => importMetaUrl.split('/').pop().split('.').shift(); 
+const fileName = (importMetaUrl) => importMetaUrl.split('/').pop().split('.').shift(); 
 
-export default {tags, createTag, up:update, update, file, render, hydrate, css, addCss, getCss, htmlIds}
+export default {tags, createTag, up:update, update, fileName, render, hydrate, css, addCss, getCss, htmlIds}
 
 
