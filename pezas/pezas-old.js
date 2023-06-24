@@ -16,7 +16,7 @@ uid.uids = []
 
 function htmlIds() {
   let ids = [...new Set(this.dyn.map(e=>e.id))]
-  return `\n<mivan-uids style="display:none;">${JSON.stringify(ids)}</mivan-uids>`
+  return `\n<pezas-uids style="display:none;">${JSON.stringify(ids)}</pezas-uids>`
 }
 
 
@@ -126,7 +126,7 @@ function render (vanEl, domEl=undefined) {
 }
 
 function hydrate(vanFn) {
-  uid.uids = JSON.parse(document.querySelector('mivan-uids')?.innerText)
+  uid.uids = JSON.parse(document.querySelector('pezas-uids')?.innerText)
   // console.log('hydrating', uid.uids)
   render(vanFn())
 }

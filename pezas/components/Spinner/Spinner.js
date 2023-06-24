@@ -1,14 +1,14 @@
-import mivan from '../../mivan.js';
+import pezas from '../../pezas.js';
 
-let F = mivan.file(import.meta.url);
-const {span} = mivan.tags;
+let F = pezas.file(import.meta.url);
+const {span} = pezas.tags;
 
 export default function () {
   return span({class:F})
   // return `<span class="${F}"></span>`   // alternative syntax
 }
 
-mivan.css.push(`
+pezas.css.push(`
   .${F} {
     display: inline-block;
     aspect-ratio: 1;

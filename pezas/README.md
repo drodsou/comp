@@ -1,9 +1,9 @@
-# mivan
+# pezas
 A van.js like, but simpler and state agnostic
 
 # TODO
 
-- better name than mivan
+- better name than pezas
 - ssr => data tag with json, eg initial state
 - component converter to svelte, eg
 - svelte interop, 
@@ -12,19 +12,19 @@ A van.js like, but simpler and state agnostic
 # DONE
 - optional props in tags
 - common tests
-- mivan2, global dyn, global css, svelte interop (not recommended)
+- pezas2, global dyn, global css, svelte interop (not recommended)
 - ssr getCSS 
 - auto .map.join in dyn updates (str, str[], obj.html, obj.html[])
 - hydrate
 - all tags
 - autoclosing tags
-- css: mivan.styles/links
+- css: pezas.styles/links
 - custom element interop
 ```js
   '<ce-icon>red</ce-icon>',
   tag('ce-icon',{},'green')
 ```
-svelte: use mivan.render on onMount(), div id=#mivan, $: mivan.update(st)
+svelte: use pezas.render on onMount(), div id=#pezas, $: pezas.update(st)
   - tambien {@html c}, pero no {@html C()}, pues lo recrea
   - tampoco funcionan los link css, hacer import css adicional en svelte (los style si funcionan)
 

@@ -1,18 +1,18 @@
-import mivan from './mivan.js';
+import pezas from './pezas.js';
 import Spinner from './components/Spinner/Spinner.js';
 
 import '../ce/ce-icon.js';
 
-const {button, div, svg, style, hr, link, tag} = mivan.tags;
+const {button, div, svg, style, hr, link, tag} = pezas.tags;
 
 let st1 = { count: 2, countB: 3, list: ['uno','dos','tres']}
 
 // ,(el)=>{console.log('el',el); if (st.count%2) { el.classList.add('odd') } else el.classList.add('odd') }
-mivan.css.push("mivan.test.css");
+pezas.css.push("pezas.test.css");
 
 let Box = (props) => (
   div( {class:'box'},
-    // link({rel:"stylesheet", href:"mivan.test.css"}),
+    // link({rel:"stylesheet", href:"pezas.test.css"}),
     
     props.text
     // style({},/*css*/`
@@ -24,14 +24,14 @@ let Box = (props) => (
 )
 
 // -- custom element interop
-// let xExtra = mivan.createTag('x-extra')({gonzo:3}, `x extra`);
+// let xExtra = pezas.createTag('x-extra')({gonzo:3}, `x extra`);
 
 let App = ()=> (
   div( 
-    button( {class:()=>st1.count%2 ? 'odd' : '', onclick: ()=>mivan.up(st1.count++) }, 
+    button( {class:()=>st1.count%2 ? 'odd' : '', onclick: ()=>pezas.up(st1.count++) }, 
       ()=>st1.count
     ),' ',
-    button( {onclick: ()=>mivan.up(st1.countB++, st1.list.push('xxx')) }, 
+    button( {onclick: ()=>pezas.up(st1.countB++, st1.list.push('xxx')) }, 
       ()=>st1.countB
     ),
     // -- autoclosing tag
@@ -58,7 +58,7 @@ let App = ()=> (
 
 let app = App()
 // -- force same uids in regeneration
-// mivan.uid.uids = [...new Set(app.dyn.map(e=>e.id))]
+// pezas.uid.uids = [...new Set(app.dyn.map(e=>e.id))]
 // let app2 = App()
 // console.log(app2.dyn)
 
@@ -66,7 +66,7 @@ if (typeof window === 'undefined') process.exit();
 
 // -- browser
 
-mivan.render(app, document.body);
+pezas.render(app, document.body);
 // document.querySelector('button').addEventListener('click',(ev)=>{ st.count++; app.update()})
 
 

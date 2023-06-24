@@ -21,12 +21,12 @@ function addCss(str) {
 
 // function htmlIds() {
 //   let ids = [...new Set(this.dyn.map(e=>e.id))]
-//   return `\n<mivan-uids style="display:none;">${JSON.stringify(ids)}</mivan-uids>`
+//   return `\n<pezas-uids style="display:none;">${JSON.stringify(ids)}</pezas-uids>`
 // }
 
 function htmlIds() {
   let uids = [...new Set(dyn.map(e=>e.id))]
-  return `\n<mivan-uids style="display:none;">${JSON.stringify(uids)}</mivan-uids>`
+  return `\n<pezas-uids style="display:none;">${JSON.stringify(uids)}</pezas-uids>`
 }
 
 
@@ -152,7 +152,7 @@ function render (vanEl, domEl) {
 }
 
 function hydrate (...vanEls) {
-  let uidsSsrEl = document.querySelector('mivan-uids')
+  let uidsSsrEl = document.querySelector('pezas-uids')
   if (uidsSsrEl) uid.uids = JSON.parse(uidsSsrEl.innerText)
   addEvents()
 }

@@ -1,8 +1,8 @@
-import mivan from './mivan.js';
+import pezas from './pezas.js';
 
-const {button} = mivan.tags;
+const {button} = pezas.tags;
 
-mivan.css.push(`
+pezas.css.push(`
   button { border: 2px solid cyan; }
 `)
 
@@ -20,7 +20,7 @@ const st1 = {
   action : {
     inc() {
       st1.data.count++;
-      mivan.up();
+      pezas.up();
     }
   }
 }
